@@ -1,0 +1,6 @@
+priority,usecase,why_it_matters,minimum_library_support
+1,parse supported keyIds,lets Dart code reason about keys without reimplementing ad hoc string logic,parse into structured segments or return stable parse errors
+2,derive kind hierarchy,lets app code inspect key meaning without trusting server hints,return root and path based hierarchy
+3,validate create and write inputs,lets app code reject obviously malformed keys before sending requests,provide lightweight validation entrypoint
+4,check root descendant relationships,lets app code organize data and subscriptions safely,provide descendant and same-root helpers
+5,keep canonical string form,lets app code compare and persist keys consistently,serialize parsed key back to canonical keyId

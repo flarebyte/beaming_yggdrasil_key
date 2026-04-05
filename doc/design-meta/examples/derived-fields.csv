@@ -1,0 +1,9 @@
+derived_field,meaning,source
+canonical,the canonical keyId string representation,original validated token sequence
+scope,structured scope segments,leading id segments before principal or root
+principal,optional structured principal segment,optional user member or subscriber segment
+root,required structured root segment,first supported root label and id
+path,structured descendant segments after root,remaining validated labels and ids
+kind_path,label-only view of scope principal root and path,derived from parsed segments
+terminal_kind,the last effective kind for the key,last path segment kind or root kind when no path exists
+derived_kind_hierarchy,root plus path labels,same hierarchy concept used by current server responses
