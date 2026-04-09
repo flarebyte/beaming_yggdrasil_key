@@ -25,6 +25,7 @@ reports: [{
 			description: "Main capability areas and preferred API direction."
 			notes: [
 				"dart.key.scope",
+				"dart.key.schema-model",
 				"dart.key.package-boundary",
 				"dart.key.api-direction",
 				"dart.key.usecases",
@@ -103,6 +104,12 @@ notes: [
 		filepath: "examples/library-scope.csv"
 		arguments: ["format-csv=table"]
 		labels: ["scope", "csv"]
+	},
+	{
+		name:  "dart.key.schema-model"
+		title: "Schema Model"
+		filepath: "examples/schema-model.ts"
+		labels: ["typescript", "schema"]
 	},
 	{
 		name:  "dart.key.package-boundary"

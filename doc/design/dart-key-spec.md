@@ -59,13 +59,14 @@ Main capability areas and preferred API direction.
 | --- | --- |
 | parsed-key-types | prefer immutable parsed key types |
 | segment-model | represent segments minimally as label plus value and keep semantic interpretation in derived helpers |
-| parsing-entrypoints | provide parsing and validation entrypoints |
+| schema-input | accept a schema that defines allowed labels value types child labels and terminal behavior |
+| parsing-entrypoints | provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic |
 | parsed-key-operations | provide navigation helpers that operate directly on ParsedKey values |
 | navigation-helpers | expose helpers for parent root ancestor and hierarchy inspection |
 | relationship-helpers | include helpers such as isDescendantOf and descendant filtering across candidate keys |
 | collection-helpers | support utility operations over lists of keys including optional inclusion of the root key and maximum depth |
 | error-model | prefer stable error types or explicit parse-result objects |
-| scope-control | avoid reproducing every possible future key grammar before needed |
+| scope-control | avoid reproducing every possible future key grammar in parser code and let schema configuration carry grammar variation |
 | package-boundary | avoid combining key utilities with unrelated application infrastructure |
 
 #### Package Boundary
@@ -77,12 +78,51 @@ Main capability areas and preferred API direction.
 | relationship between raw strings and parsed keys | should remain explicit rather than hidden behind implicit conversions |
 | dependency direction | packages can depend on beaming_yggdrasil_key when they want path-like key utilities without pulling broader concerns |
 
+#### Schema Model
+
+```ts
+export type SchemaValueType = 'id' | '_' | '~';
+
+export type KeySchemaNode = {
+  label: string;
+  valueTypes: SchemaValueType[];
+  childLabels: string[];
+  terminal?: boolean;
+  repeatable?: boolean;
+};
+
+export type KeySchema = {
+  rootLabels: string[];
+  nodesByLabel: Record<string, KeySchemaNode>;
+};
+
+export const exampleSchema: KeySchema = {
+  rootLabels: ['dashboard', 'profile'],
+  nodesByLabel: {
+    tenant: { label: 'tenant', valueTypes: ['id'], childLabels: ['group', 'team', 'region', 'dashboard', 'profile'] },
+    group: { label: 'group', valueTypes: ['id'], childLabels: ['dashboard', 'profile'] },
+    dashboard: { label: 'dashboard', valueTypes: ['id'], childLabels: ['note', 'language', 'thumbnail', 'like', 'user'] },
+    note: { label: 'note', valueTypes: ['id'], childLabels: ['text', 'language', 'thumbnail', 'like'] },
+    like: { label: 'like', valueTypes: ['_'], childLabels: ['count', 'user', 'member', 'subscriber'] },
+    text: { label: 'text', valueTypes: ['_'], childLabels: [], terminal: true },
+    count: { label: 'count', valueTypes: ['_'], childLabels: [], terminal: true },
+    language: { label: 'language', valueTypes: ['_'], childLabels: [], terminal: true },
+    thumbnail: { label: 'thumbnail', valueTypes: ['_'], childLabels: [], terminal: true },
+    user: { label: 'user', valueTypes: ['id', '~', '_'], childLabels: [] },
+    member: { label: 'member', valueTypes: ['id', '_'], childLabels: [] },
+    subscriber: { label: 'subscriber', valueTypes: ['id', '_'], childLabels: [] },
+    profile: { label: 'profile', valueTypes: ['id'], childLabels: [] },
+  },
+};
+```
+
 #### Library Scope
 
 | area | in_scope | out_of_scope |
 | --- | --- | --- |
-| key-parser | supported keyId grammar for current Yggdrasil examples | unbounded future grammar design |
-| derived-fields | root path principal scope hierarchy and terminal kind derived from labels | application-specific meaning inferred from key kinds |
+| key-parser | schema-driven parsing of supported keyId grammar for current Yggdrasil examples | hardcoded path ordering or child rules inside parser code |
+| schema-definition | normalized schema map keyed by label with child and value constraints | ad hoc grammar branches spread across parser implementation |
+| derived-fields | root path principal scope hierarchy and terminal kind derived from labels and schema position | application-specific meaning inferred from key kinds |
 | navigation-helpers | parent root and ancestor helpers over one key string or ParsedKey | resource loading or tree persistence |
 | relationship-helpers | descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values | access policy evaluation |
 | validation | stable parse failures for malformed key strings | UI form frameworks or remote validation protocols |
@@ -92,11 +132,11 @@ Main capability areas and preferred API direction.
 
 | minimum_library_support | priority | usecase | why_it_matters |
 | --- | --- | --- | --- |
-| parse into structured segments or return stable parse errors | 1 | parse supported keyIds | lets Dart code reason about keys without reimplementing ad hoc string logic |
-| provide parent and isRoot helpers for string inputs | 2 | get the parent or root of a key string | lets app code navigate raw keys like paths |
+| parse into structured segments while traversing schema node definitions | 1 | parse supported keyIds with a schema | lets Dart code validate grammar without hardcoding path rules |
+| provide parent and isRoot helpers for string inputs after schema validation | 2 | get the parent or root of a key string | lets app code navigate raw keys like paths |
 | provide ParsedKey-based parent and ancestor helpers | 3 | get parent or ancestors from a parsed key | lets app code avoid re-parsing when a ParsedKey is already available |
 | provide descendant filtering with include-self and max-depth options for strings and ParsedKey values | 4 | check descendant relationships within a list of keys | lets app code find related keys without building custom traversal code |
-| return root and path based hierarchy | 5 | derive kind hierarchy | lets app code inspect key meaning without reparsing string segments manually |
+| accept a normalized schema map keyed by label | 5 | configure grammar through schema data | lets the package adapt to allowed labels child ordering and value rules without parser rewrites |
 | serialize parsed key back to canonical keyId | 6 | keep canonical string form | lets app code compare and persist keys consistently |
 
 ## 02 Parsing Contract
@@ -115,15 +155,10 @@ Current supported key parsing rules.
 | this removes ambiguity from bare labels | every segment must use the form label:value | uniform-segments |
 | all other values are opaque identifiers | underscore means intrinsic and tilde means contextual self reference | reserved-values |
 | semantic interpretation comes from labels and position instead of a duplicated segment kind field | each label:value pair is one atomic segment | segment-model |
-| keeps grammar narrow to supported examples | first scope segment must currently be tenant or department | scope-level-1 |
-| only one optional level is supported today | optional second scope segment may be group team or region | scope-level-2 |
-| principal sits after scope and before root | optional principal segment may be user member or subscriber | principal |
-| root is required | root segment must currently be dashboard or profile | root |
-| these are descendant container segments | path may include note or comment with explicit ids | path-id-segments |
-| branch labels are limited to supported examples | path may include like language or thumbnail branches | path-branch-segments |
-| terminal segments cannot have children | text:_ and count:_ are terminal segments | terminal-segments |
-| this keeps the supported like principal shape while preserving label:value form | user:_ member:_ or subscriber:_ may follow like:_ | like-principal |
-| canonical serialization always keeps the explicit underscore | language:_ thumbnail:_ like:_ text:_ and count:_ use underscore for intrinsic value | intrinsic-branches |
+| path ordering and child rules are declarative rather than hardcoded | the parser must validate by traversing a schema from parent label to allowed child labels | schema-driven-validation |
+| this keeps grammar logic in data instead of parser branches | each schema node defines allowed value types child labels and whether the node is terminal | schema-node-rules |
+| no hardcoded terminal label checks are required in parser code | terminal nodes are determined by schema and must reject children | terminal-segments |
+| the serializer does not need shape-specific exceptions | canonical serialization always emits explicit label:value pairs | canonicalization |
 
 ### 02 Acceptance Examples
 
@@ -191,6 +226,21 @@ export type DescendantQuery = {
   maxDepth?: number;
 };
 
+export type SchemaValueType = 'id' | '_' | '~';
+
+export type KeySchemaNode = {
+  label: string;
+  valueTypes: SchemaValueType[];
+  childLabels: string[];
+  terminal?: boolean;
+  repeatable?: boolean;
+};
+
+export type KeySchema = {
+  rootLabels: string[];
+  nodesByLabel: Record<string, KeySchemaNode>;
+};
+
 export interface ParsedKeyNavigator {
   isRoot(parsed: ParsedKey): boolean;
   parentOf(parsed: ParsedKey): ParsedKey | null;
@@ -219,9 +269,9 @@ export type ParseFailure = {
 | path | structured descendant segments after root | remaining validated labels and ids |
 | parent_key | canonical key of the immediate parent when one exists | derived by removing the final effective segment from a parsed key |
 | ancestor_keys | ordered canonical keys from closest parent up to the root | derived by repeated parent traversal |
-| kind_path | label-only view of scope principal root and path | derived by reading each segment label in order rather than storing a second per-segment kind field |
-| terminal_kind | the last effective kind for the key | derived from the label of the final path segment or from the root label when no path exists |
-| derived_kind_hierarchy | root plus path labels | derived from labels and segment position in the parsed key |
+| kind_path | label-only view of scope principal root and path | derived by reading each segment label in order after schema validation |
+| terminal_kind | the last effective kind for the key | derived from the label of the final validated path segment or from the root label when no path exists |
+| derived_kind_hierarchy | root plus path labels | derived from labels segment position and schema-validated path structure |
 
 ### 02 Parser API
 
@@ -230,13 +280,14 @@ API-shape examples for the Dart package.
 #### Parser API Example Shapes
 
 ```ts
-import type { DescendantQuery, DerivedKind, ParsedKey, ParsedKeyNavigator } from './common';
+import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator } from './common';
 
 export type ParseResult =
   | { ok: true; value: ParsedKey }
   | { ok: false; message: string };
 
 export interface BeamingYggdrasilKeyParser {
+  schema: KeySchema;
   parse(keyId: string): ParseResult;
   mustParse(keyId: string): ParsedKey;
   isValid(keyId: string): boolean;
@@ -258,5 +309,6 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - parsed-key helpers should work directly on ParsedKey values without forcing a string round trip
 // - canonical string form should always use explicit label:value pairs
 // - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
+// - structure validation should traverse the schema instead of hardcoding allowed label order in parser code
 ```
 

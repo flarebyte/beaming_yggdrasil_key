@@ -1,11 +1,12 @@
 api_area,preferred_direction
 parsed-key-types,prefer immutable parsed key types
 segment-model,represent segments minimally as label plus value and keep semantic interpretation in derived helpers
-parsing-entrypoints,provide parsing and validation entrypoints
+schema-input,accept a schema that defines allowed labels value types child labels and terminal behavior
+parsing-entrypoints,provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic
 parsed-key-operations,provide navigation helpers that operate directly on ParsedKey values
 navigation-helpers,expose helpers for parent root ancestor and hierarchy inspection
 relationship-helpers,include helpers such as isDescendantOf and descendant filtering across candidate keys
 collection-helpers,support utility operations over lists of keys including optional inclusion of the root key and maximum depth
 error-model,prefer stable error types or explicit parse-result objects
-scope-control,avoid reproducing every possible future key grammar before needed
+scope-control,avoid reproducing every possible future key grammar in parser code and let schema configuration carry grammar variation
 package-boundary,avoid combining key utilities with unrelated application infrastructure

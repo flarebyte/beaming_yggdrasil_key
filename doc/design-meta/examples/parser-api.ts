@@ -1,10 +1,11 @@
-import type { DescendantQuery, DerivedKind, ParsedKey, ParsedKeyNavigator } from './common';
+import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator } from './common';
 
 export type ParseResult =
   | { ok: true; value: ParsedKey }
   | { ok: false; message: string };
 
 export interface BeamingYggdrasilKeyParser {
+  schema: KeySchema;
   parse(keyId: string): ParseResult;
   mustParse(keyId: string): ParsedKey;
   isValid(keyId: string): boolean;
@@ -26,3 +27,4 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - parsed-key helpers should work directly on ParsedKey values without forcing a string round trip
 // - canonical string form should always use explicit label:value pairs
 // - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
+// - structure validation should traverse the schema instead of hardcoding allowed label order in parser code

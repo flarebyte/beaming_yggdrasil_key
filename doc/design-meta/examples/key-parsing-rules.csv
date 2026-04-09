@@ -3,12 +3,7 @@ tokenization,split keyId by colon into label value pairs,empty keyId is invalid 
 uniform-segments,every segment must use the form label:value,this removes ambiguity from bare labels
 reserved-values,underscore means intrinsic and tilde means contextual self reference,all other values are opaque identifiers
 segment-model,each label:value pair is one atomic segment,semantic interpretation comes from labels and position instead of a duplicated segment kind field
-scope-level-1,first scope segment must currently be tenant or department,keeps grammar narrow to supported examples
-scope-level-2,optional second scope segment may be group team or region,only one optional level is supported today
-principal,optional principal segment may be user member or subscriber,principal sits after scope and before root
-root,root segment must currently be dashboard or profile,root is required
-path-id-segments,path may include note or comment with explicit ids,these are descendant container segments
-path-branch-segments,path may include like language or thumbnail branches,branch labels are limited to supported examples
-terminal-segments,text:_ and count:_ are terminal segments,terminal segments cannot have children
-like-principal,user:_ member:_ or subscriber:_ may follow like:_,this keeps the supported like principal shape while preserving label:value form
-intrinsic-branches,language:_ thumbnail:_ like:_ text:_ and count:_ use underscore for intrinsic value,canonical serialization always keeps the explicit underscore
+schema-driven-validation,the parser must validate by traversing a schema from parent label to allowed child labels,path ordering and child rules are declarative rather than hardcoded
+schema-node-rules,each schema node defines allowed value types child labels and whether the node is terminal,this keeps grammar logic in data instead of parser branches
+terminal-segments,terminal nodes are determined by schema and must reject children,no hardcoded terminal label checks are required in parser code
+canonicalization,canonical serialization always emits explicit label:value pairs,the serializer does not need shape-specific exceptions

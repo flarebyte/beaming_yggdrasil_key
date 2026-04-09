@@ -1,6 +1,7 @@
 area,in_scope,out_of_scope
-key-parser,supported keyId grammar for current Yggdrasil examples,unbounded future grammar design
-derived-fields,root path principal scope hierarchy and terminal kind derived from labels,application-specific meaning inferred from key kinds
+key-parser,schema-driven parsing of supported keyId grammar for current Yggdrasil examples,hardcoded path ordering or child rules inside parser code
+schema-definition,normalized schema map keyed by label with child and value constraints,ad hoc grammar branches spread across parser implementation
+derived-fields,root path principal scope hierarchy and terminal kind derived from labels and schema position,application-specific meaning inferred from key kinds
 navigation-helpers,parent root and ancestor helpers over one key string or ParsedKey,resource loading or tree persistence
 relationship-helpers,descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values,access policy evaluation
 validation,stable parse failures for malformed key strings,UI form frameworks or remote validation protocols

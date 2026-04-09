@@ -18,6 +18,21 @@ export type DescendantQuery = {
   maxDepth?: number;
 };
 
+export type SchemaValueType = 'id' | '_' | '~';
+
+export type KeySchemaNode = {
+  label: string;
+  valueTypes: SchemaValueType[];
+  childLabels: string[];
+  terminal?: boolean;
+  repeatable?: boolean;
+};
+
+export type KeySchema = {
+  rootLabels: string[];
+  nodesByLabel: Record<string, KeySchemaNode>;
+};
+
 export interface ParsedKeyNavigator {
   isRoot(parsed: ParsedKey): boolean;
   parentOf(parsed: ParsedKey): ParsedKey | null;
