@@ -34,19 +34,19 @@ It should not own:
 
 ## Folder Layout
 
-- [overview.md](/Users/olivier/Documents/github/chatty-ratatoskr/temp/dart-key/overview.md)
-- [examples/usecases.csv](/Users/olivier/Documents/github/chatty-ratatoskr/temp/dart-key/examples/usecases.csv)
-- [examples/library-scope.csv](/Users/olivier/Documents/github/chatty-ratatoskr/temp/dart-key/examples/library-scope.csv)
-- [examples/key-parsing-rules.csv](/Users/olivier/Documents/github/chatty-ratatoskr/temp/dart-key/examples/key-parsing-rules.csv)
-- [examples/key-acceptance-examples.csv](/Users/olivier/Documents/github/chatty-ratatoskr/temp/dart-key/examples/key-acceptance-examples.csv)
-- [examples/key-rejection-examples.csv](/Users/olivier/Documents/github/chatty-ratatoskr/temp/dart-key/examples/key-rejection-examples.csv)
-- [examples/derived-fields.csv](/Users/olivier/Documents/github/chatty-ratatoskr/temp/dart-key/examples/derived-fields.csv)
-- [examples/common.ts](/Users/olivier/Documents/github/chatty-ratatoskr/temp/dart-key/examples/common.ts)
-- [examples/parser-api.ts](/Users/olivier/Documents/github/chatty-ratatoskr/temp/dart-key/examples/parser-api.ts)
+- [overview.md](overview.md)
+- [examples/usecases.csv](examples/usecases.csv)
+- [examples/library-scope.csv](examples/library-scope.csv)
+- [examples/key-parsing-rules.csv](examples/key-parsing-rules.csv)
+- [examples/key-acceptance-examples.csv](examples/key-acceptance-examples.csv)
+- [examples/key-rejection-examples.csv](examples/key-rejection-examples.csv)
+- [examples/derived-fields.csv](examples/derived-fields.csv)
+- [examples/common.ts](examples/common.ts)
+- [examples/parser-api.ts](examples/parser-api.ts)
 
 ## Notes
 
 - The `.ts` files are API-shape examples only.
 - The CSV files are the main review surface.
 - This library is intended to keep key logic out of the transport client package.
-- The source protocol reference remains [doc/design/yggdrasil-mock-server.md](/Users/olivier/Documents/github/chatty-ratatoskr/doc/design/yggdrasil-mock-server.md).
+- The source protocol reference remains the mock-server design in the upstream transport repository.

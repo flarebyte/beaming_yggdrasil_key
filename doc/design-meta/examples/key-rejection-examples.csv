@@ -2,7 +2,7 @@ key_id,expected_error_reason
 ,invalid key: empty key
 tenant,invalid key: incomplete key
 tenant:t8f3a1c2:dashboard,invalid key because root id is missing
-tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:missing:n1:text,invalid key: unsupported label "missing"
+tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:missing:n1:text,"invalid key: unsupported label ""missing"""
 tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:_,invalid key because underscore alias must follow an explicit allowed label
 tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:text:child,invalid key because terminal segment cannot have children
 tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:u1,invalid key because principal labels are not allowed in that position

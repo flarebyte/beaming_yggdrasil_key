@@ -119,3 +119,13 @@ notes: [
 		labels: ["typescript", "api"]
 	},
 ]
+
+argumentRegistry: {
+	version: "1"
+	arguments: [{
+		name:          "format-csv"
+		valueType:     "string"
+		scopes:        ["note"]
+		allowedValues: ["table", "raw"]
+	}]
+}
