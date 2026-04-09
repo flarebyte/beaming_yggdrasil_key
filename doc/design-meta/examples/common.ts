@@ -20,6 +20,13 @@ export type DescendantQuery = {
 
 export type SchemaValueType = 'id' | '_' | '~';
 
+export type KeySchemaConfig = {
+  maxDepth: number;
+  minIdChars: number;
+  maxIdChars: number;
+  allowedIdPattern: string;
+};
+
 export type KeySchemaNode = {
   label: string;
   valueTypes: SchemaValueType[];
@@ -29,6 +36,7 @@ export type KeySchemaNode = {
 };
 
 export type KeySchema = {
+  config: KeySchemaConfig;
   rootLabels: string[];
   nodesByLabel: Record<string, KeySchemaNode>;
 };

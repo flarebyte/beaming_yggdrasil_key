@@ -1,5 +1,12 @@
 export type SchemaValueType = 'id' | '_' | '~';
 
+export type KeySchemaConfig = {
+  maxDepth: number;
+  minIdChars: number;
+  maxIdChars: number;
+  allowedIdPattern: string;
+};
+
 export type KeySchemaNode = {
   label: string;
   valueTypes: SchemaValueType[];
@@ -9,11 +16,18 @@ export type KeySchemaNode = {
 };
 
 export type KeySchema = {
+  config: KeySchemaConfig;
   rootLabels: string[];
   nodesByLabel: Record<string, KeySchemaNode>;
 };
 
 export const exampleSchema: KeySchema = {
+  config: {
+    maxDepth: 8,
+    minIdChars: 1,
+    maxIdChars: 64,
+    allowedIdPattern: '^[A-Za-z0-9._-]+$',
+  },
   rootLabels: ['dashboard', 'profile'],
   nodesByLabel: {
     tenant: { label: 'tenant', valueTypes: ['id'], childLabels: ['group', 'team', 'region', 'dashboard', 'profile'] },

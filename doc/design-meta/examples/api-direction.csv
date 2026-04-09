@@ -2,6 +2,7 @@ api_area,preferred_direction
 parsed-key-types,prefer immutable parsed key types
 segment-model,represent segments minimally as label plus value and keep semantic interpretation in derived helpers
 schema-input,accept a schema that defines allowed labels value types child labels and terminal behavior
+schema-config,keep max depth min and max id length plus allowed id characters in schema config rather than parser constants
 parsing-entrypoints,provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic
 parsed-key-operations,provide navigation helpers that operate directly on ParsedKey values
 navigation-helpers,expose helpers for parent root ancestor and hierarchy inspection
