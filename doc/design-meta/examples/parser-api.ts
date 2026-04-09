@@ -25,3 +25,4 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - keep the package lightweight, closer to a path utility than a framework
 // - parsed-key helpers should work directly on ParsedKey values without forcing a string round trip
 // - canonical string form should always use explicit label:value pairs
+// - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment

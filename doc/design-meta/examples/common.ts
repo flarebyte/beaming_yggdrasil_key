@@ -1,7 +1,6 @@
 export type Segment = {
   label: string;
   value: string;
-  kind: string;
 };
 
 export type ParsedKey = {

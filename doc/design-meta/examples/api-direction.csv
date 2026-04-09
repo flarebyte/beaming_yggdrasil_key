@@ -1,5 +1,6 @@
 api_area,preferred_direction
 parsed-key-types,prefer immutable parsed key types
+segment-model,represent segments minimally as label plus value and keep semantic interpretation in derived helpers
 parsing-entrypoints,provide parsing and validation entrypoints
 parsed-key-operations,provide navigation helpers that operate directly on ParsedKey values
 navigation-helpers,expose helpers for parent root ancestor and hierarchy inspection

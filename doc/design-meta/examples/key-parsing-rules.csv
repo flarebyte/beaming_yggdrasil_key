@@ -2,6 +2,7 @@ topic,rule,notes
 tokenization,split keyId by colon into label value pairs,empty keyId is invalid and token count must be even
 uniform-segments,every segment must use the form label:value,this removes ambiguity from bare labels
 reserved-values,underscore means intrinsic and tilde means contextual self reference,all other values are opaque identifiers
+segment-model,each label:value pair is one atomic segment,semantic interpretation comes from labels and position instead of a duplicated segment kind field
 scope-level-1,first scope segment must currently be tenant or department,keeps grammar narrow to supported examples
 scope-level-2,optional second scope segment may be group team or region,only one optional level is supported today
 principal,optional principal segment may be user member or subscriber,principal sits after scope and before root

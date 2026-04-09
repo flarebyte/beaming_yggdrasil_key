@@ -44,7 +44,7 @@ Repository target, library goal, and the narrow responsibilities of a key utilit
 | --- | --- |
 | produce structured Dart values from supported keys | parse supported keyId strings |
 | return stable validation failures for tests and diagnostics | reject malformed or unsupported key shapes |
-| provide root path terminal kind and hierarchy data | expose derived fields |
+| provide root path terminal kind and hierarchy data derived from labels and segment position | expose derived fields |
 | support operations such as parent ancestor chain and root checks on strings and ParsedKey values | provide upward traversal helpers |
 | support descendant checks across candidate keys with optional depth limits on strings and ParsedKey values | provide downward relationship helpers |
 | keep persisted and compared key strings stable | serialize parsed keys back to canonical form |
@@ -58,6 +58,7 @@ Main capability areas and preferred API direction.
 | api_area | preferred_direction |
 | --- | --- |
 | parsed-key-types | prefer immutable parsed key types |
+| segment-model | represent segments minimally as label plus value and keep semantic interpretation in derived helpers |
 | parsing-entrypoints | provide parsing and validation entrypoints |
 | parsed-key-operations | provide navigation helpers that operate directly on ParsedKey values |
 | navigation-helpers | expose helpers for parent root ancestor and hierarchy inspection |
@@ -81,7 +82,7 @@ Main capability areas and preferred API direction.
 | area | in_scope | out_of_scope |
 | --- | --- | --- |
 | key-parser | supported keyId grammar for current Yggdrasil examples | unbounded future grammar design |
-| derived-fields | root path principal scope hierarchy and terminal kind | application-specific meaning inferred from key kinds |
+| derived-fields | root path principal scope hierarchy and terminal kind derived from labels | application-specific meaning inferred from key kinds |
 | navigation-helpers | parent root and ancestor helpers over one key string or ParsedKey | resource loading or tree persistence |
 | relationship-helpers | descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values | access policy evaluation |
 | validation | stable parse failures for malformed key strings | UI form frameworks or remote validation protocols |
@@ -113,6 +114,7 @@ Current supported key parsing rules.
 | empty keyId is invalid and token count must be even | split keyId by colon into label value pairs | tokenization |
 | this removes ambiguity from bare labels | every segment must use the form label:value | uniform-segments |
 | all other values are opaque identifiers | underscore means intrinsic and tilde means contextual self reference | reserved-values |
+| semantic interpretation comes from labels and position instead of a duplicated segment kind field | each label:value pair is one atomic segment | segment-model |
 | keeps grammar narrow to supported examples | first scope segment must currently be tenant or department | scope-level-1 |
 | only one optional level is supported today | optional second scope segment may be group team or region | scope-level-2 |
 | principal sits after scope and before root | optional principal segment may be user member or subscriber | principal |
@@ -172,7 +174,6 @@ Structured and derived values exposed by the parser.
 export type Segment = {
   label: string;
   value: string;
-  kind: string;
 };
 
 export type ParsedKey = {
@@ -218,9 +219,9 @@ export type ParseFailure = {
 | path | structured descendant segments after root | remaining validated labels and ids |
 | parent_key | canonical key of the immediate parent when one exists | derived by removing the final effective segment from a parsed key |
 | ancestor_keys | ordered canonical keys from closest parent up to the root | derived by repeated parent traversal |
-| kind_path | label-only view of scope principal root and path | derived from parsed segments |
-| terminal_kind | the last effective kind for the key | last path segment kind or root kind when no path exists |
-| derived_kind_hierarchy | root plus path labels | derived from the root and path segment labels |
+| kind_path | label-only view of scope principal root and path | derived by reading each segment label in order rather than storing a second per-segment kind field |
+| terminal_kind | the last effective kind for the key | derived from the label of the final path segment or from the root label when no path exists |
+| derived_kind_hierarchy | root plus path labels | derived from labels and segment position in the parsed key |
 
 ### 02 Parser API
 
@@ -256,5 +257,6 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - keep the package lightweight, closer to a path utility than a framework
 // - parsed-key helpers should work directly on ParsedKey values without forcing a string round trip
 // - canonical string form should always use explicit label:value pairs
+// - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
 ```
 
