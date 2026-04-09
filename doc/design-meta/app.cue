@@ -12,13 +12,23 @@ reports: [{
 		title:       "01 Overview"
 		description: "Purpose, scope, and package boundary."
 		sections: [{
-			title:       "01 Intent"
-			description: "What the key package should own and why it stays separate from transport."
-			notes: ["dart.key.readme", "dart.key.overview"]
+			title:       "01 Purpose and Scope"
+			description: "Repository target, library goal, and key-first ownership boundaries."
+			notes: [
+				"dart.key.goals",
+				"dart.key.design-ownership",
+				"dart.key.responsibilities",
+				"dart.key.non-goals",
+			]
 		}, {
-			title:       "02 Use Cases"
-			description: "Main parsing and key-relationship workflows."
-			notes: ["dart.key.usecases", "dart.key.scope"]
+			title:       "02 Product Shape"
+			description: "Major library areas, package boundary, and preferred API direction."
+			notes: [
+				"dart.key.scope",
+				"dart.key.package-boundary",
+				"dart.key.api-direction",
+				"dart.key.usecases",
+			]
 		}]
 	}, {
 		title:       "02 Parsing Contract"
@@ -53,16 +63,32 @@ reports: [{
 
 notes: [
 	{
-		name:  "dart.key.readme"
-		title: "beaming_yggdrasil_key Specs"
-		filepath: "README.md"
-		labels: ["overview", "markdown"]
+		name:  "dart.key.goals"
+		title: "Library Goals"
+		filepath: "examples/library-goals.csv"
+		arguments: ["format-csv=table"]
+		labels: ["goals", "csv"]
 	},
 	{
-		name:  "dart.key.overview"
-		title: "Key Library Overview"
-		filepath: "overview.md"
-		labels: ["overview", "markdown"]
+		name:  "dart.key.design-ownership"
+		title: "Design Ownership"
+		filepath: "examples/design-ownership.csv"
+		arguments: ["format-csv=table"]
+		labels: ["ownership", "csv"]
+	},
+	{
+		name:  "dart.key.responsibilities"
+		title: "Main Responsibilities"
+		filepath: "examples/main-responsibilities.csv"
+		arguments: ["format-csv=table"]
+		labels: ["responsibilities", "csv"]
+	},
+	{
+		name:  "dart.key.non-goals"
+		title: "Explicit Non-Goals"
+		filepath: "examples/explicit-non-goals.csv"
+		arguments: ["format-csv=table"]
+		labels: ["non-goals", "csv"]
 	},
 	{
 		name:  "dart.key.usecases"
@@ -77,6 +103,20 @@ notes: [
 		filepath: "examples/library-scope.csv"
 		arguments: ["format-csv=table"]
 		labels: ["scope", "csv"]
+	},
+	{
+		name:  "dart.key.package-boundary"
+		title: "Package Boundary"
+		filepath: "examples/package-boundary.csv"
+		arguments: ["format-csv=table"]
+		labels: ["boundary", "csv"]
+	},
+	{
+		name:  "dart.key.api-direction"
+		title: "Practical API Direction"
+		filepath: "examples/api-direction.csv"
+		arguments: ["format-csv=table"]
+		labels: ["api", "csv"]
 	},
 	{
 		name:  "dart.key.parsing-rules"

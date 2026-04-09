@@ -1,0 +1,5 @@
+goal,why_it_matters
+model Yggdrasil logical keys in Dart,gives applications a structured local representation instead of ad hoc string handling
+parse and validate supported keyId shapes,lets client code reject malformed keys deterministically
+expose derived key metadata in a Dart-friendly way,makes hierarchy and traversal logic available without reparsing
+stay separate from transport concerns,keeps the package reusable outside REST and websocket clients

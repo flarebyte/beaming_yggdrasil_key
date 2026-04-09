@@ -1,0 +1,8 @@
+api_area,preferred_direction
+parsed-key-types,prefer immutable parsed key types
+parsing-entrypoints,provide parsing and validation entrypoints
+derived-kind-helpers,expose helpers for hierarchy and terminal kind inspection
+relationship-helpers,include helpers such as isDescendantOf
+error-model,prefer stable error types or explicit parse-result objects
+scope-control,avoid reproducing every possible future key grammar before needed
+package-boundary,avoid combining parser logic with application storage logic

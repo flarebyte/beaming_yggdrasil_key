@@ -6,127 +6,72 @@ Key-first Dart library spec for Yggdrasil logical key parsing and derived metada
 
 Purpose, scope, and package boundary.
 
-### 01 Intent
+### 01 Purpose and Scope
 
-What the key package should own and why it stays separate from transport.
+Repository target, library goal, and key-first ownership boundaries.
 
-#### Key Library Overview
+#### Design Ownership
 
-```markdown
-# beaming_yggdrasil_key Overview
+| area | should_not_own | should_own |
+| --- | --- | --- |
+| parsing | HTTP request execution | keyId parsing |
+| validation | WebSocket sessions | key validation |
+| derived-data | server envelope DTOs | derived kind and hierarchy helpers |
+| structured-data | admin mock-server commands | structured key segments |
+| serialization | transport-specific retry or session logic | canonical serialization helpers |
 
-## Purpose
+#### Library Goals
 
-`beaming_yggdrasil_key` should provide Dart-side support for Yggdrasil logical keys without pulling transport code into the same package.
+| goal | why_it_matters |
+| --- | --- |
+| model Yggdrasil logical keys in Dart | gives applications a structured local representation instead of ad hoc string handling |
+| parse and validate supported keyId shapes | lets client code reject malformed keys deterministically |
+| expose derived key metadata in a Dart-friendly way | makes hierarchy and traversal logic available without reparsing |
+| stay separate from transport concerns | keeps the package reusable outside REST and websocket clients |
 
-The package should answer questions like:
+#### Explicit Non-Goals
 
-- is this `keyId` structurally valid for the supported grammar
-- what are the scope, root, and path segments
-- what kind hierarchy can be derived from this key
-- is one key a descendant of another
+| non_goal | why_out_of_scope |
+| --- | --- |
+| make network calls | this package should model keys not execute transport |
+| embed HTTP status or envelope logic | transport concerns belong in another package |
+| perform access-control decisions | authorization policy should stay in higher-level application logic |
+| force every future product to use one serialized key format | the library should stay narrow to supported shapes and evolve deliberately |
 
-## Main Responsibilities
+#### Main Responsibilities
 
-- parse supported `keyId` strings into structured Dart values
-- reject malformed or unsupported key shapes with stable errors
-- expose derived fields such as root, path, terminal kind, and hierarchy
-- serialize parsed keys back into a canonical string form
-- provide practical helpers such as descendant checks
+| outcome | responsibility |
+| --- | --- |
+| produce structured Dart values from supported keys | parse supported keyId strings |
+| return stable validation failures for tests and diagnostics | reject malformed or unsupported key shapes |
+| provide root path terminal kind and hierarchy data | expose derived fields |
+| keep persisted and compared key strings stable | serialize parsed keys back to canonical form |
+| support checks such as descendant relationships | provide relationship helpers |
 
-## Explicit Non-Goals
+### 02 Product Shape
 
-- do not make network calls
-- do not embed HTTP status or envelope logic
-- do not perform access-control decisions
-- do not force every future product to use one serialized key format
+Major library areas, package boundary, and preferred API direction.
 
-## Relationship To `beaming_yggdrasil`
+#### Practical API Direction
 
-`beaming_yggdrasil` should be able to depend on this package, but should not require it for basic transport DTO usage.
+| api_area | preferred_direction |
+| --- | --- |
+| parsed-key-types | prefer immutable parsed key types |
+| parsing-entrypoints | provide parsing and validation entrypoints |
+| derived-kind-helpers | expose helpers for hierarchy and terminal kind inspection |
+| relationship-helpers | include helpers such as isDescendantOf |
+| error-model | prefer stable error types or explicit parse-result objects |
+| scope-control | avoid reproducing every possible future key grammar before needed |
+| package-boundary | avoid combining parser logic with application storage logic |
 
-That means:
+#### Package Boundary
 
-- transport DTOs should still allow raw `keyId` strings
-- apps that need richer key tooling can opt into `beaming_yggdrasil_key`
-- the boundary between transport and key semantics stays explicit
-
-## Practical API Direction
-
-The eventual Dart package should likely provide:
-
-- immutable parsed key types
-- parsing and validation entrypoints
-- derived-kind helpers
-- relationship helpers like `isDescendantOf`
-- stable error types or parse-result objects
-
-It should avoid:
-
-- trying to reproduce every possible future key grammar before needed
-- combining parser logic with application storage logic
-```
-
-#### beaming_yggdrasil_key Specs
-
-```markdown
-# beaming_yggdrasil_key Specs
-
-This folder contains draft specs for a Dart key library that complements `beaming_yggdrasil`.
-
-Repository target:
-
-- GitHub project: `beaming_yggdrasil_key`
-
-Library goal:
-
-- model Yggdrasil logical keys in Dart
-- parse and validate supported `keyId` shapes
-- expose derived key metadata in a Dart-friendly way
-- stay separate from transport concerns such as REST clients and WebSocket sessions
-
-## Design Intent
-
-`beaming_yggdrasil_key` should be a key-first library.
-
-It should own:
-
-- `keyId` parsing
-- key validation
-- derived kind and hierarchy helpers
-- structured key segments
-- canonical serialization helpers
-
-It should not own:
-
-- HTTP request execution
-- WebSocket sessions
-- server envelope DTOs
-- admin mock-server commands
-
-## Folder Layout
-
-- [overview.md](overview.md)
-- [examples/usecases.csv](examples/usecases.csv)
-- [examples/library-scope.csv](examples/library-scope.csv)
-- [examples/key-parsing-rules.csv](examples/key-parsing-rules.csv)
-- [examples/key-acceptance-examples.csv](examples/key-acceptance-examples.csv)
-- [examples/key-rejection-examples.csv](examples/key-rejection-examples.csv)
-- [examples/derived-fields.csv](examples/derived-fields.csv)
-- [examples/common.ts](examples/common.ts)
-- [examples/parser-api.ts](examples/parser-api.ts)
-
-## Notes
-
-- The `.ts` files are API-shape examples only.
-- The CSV files are the main review surface.
-- This library is intended to keep key logic out of the transport client package.
-- The source protocol reference remains the mock-server design in the upstream transport repository.
-```
-
-### 02 Use Cases
-
-Main parsing and key-relationship workflows.
+| boundary_point | expected_direction |
+| --- | --- |
+| transport DTOs | should still allow raw keyId strings |
+| applications needing richer key tooling | should opt into beaming_yggdrasil_key explicitly |
+| relationship between transport and key semantics | should remain explicit rather than hidden inside DTO parsing |
+| dependency direction | beaming_yggdrasil should be able to depend on beaming_yggdrasil_key without requiring it for basic transport usage |
 
 #### Library Scope
 
