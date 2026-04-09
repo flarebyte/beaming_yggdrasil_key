@@ -1,7 +1,7 @@
 area,in_scope,out_of_scope
 key-parser,supported keyId grammar for current Yggdrasil examples,unbounded future grammar design
 derived-fields,root path principal scope hierarchy and terminal kind,application-specific meaning inferred from key kinds
-navigation-helpers,parent root and ancestor helpers over one key,resource loading or tree persistence
-relationship-helpers,descendant checks descendant filtering canonical equality and same-root checks,access policy evaluation
+navigation-helpers,parent root and ancestor helpers over one key string or ParsedKey,resource loading or tree persistence
+relationship-helpers,descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values,access policy evaluation
 validation,stable parse failures for malformed key strings,UI form frameworks or remote validation protocols
 serialization,canonical keyId round-trip helpers,local database sync engine

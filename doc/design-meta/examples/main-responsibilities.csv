@@ -2,6 +2,6 @@ responsibility,outcome
 parse supported keyId strings,produce structured Dart values from supported keys
 reject malformed or unsupported key shapes,return stable validation failures for tests and diagnostics
 expose derived fields,provide root path terminal kind and hierarchy data
-provide upward traversal helpers,support operations such as parent ancestor chain and root checks
-provide downward relationship helpers,support descendant checks across candidate keys with optional depth limits
+provide upward traversal helpers,support operations such as parent ancestor chain and root checks on strings and ParsedKey values
+provide downward relationship helpers,support descendant checks across candidate keys with optional depth limits on strings and ParsedKey values
 serialize parsed keys back to canonical form,keep persisted and compared key strings stable

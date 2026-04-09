@@ -45,8 +45,8 @@ Repository target, library goal, and the narrow responsibilities of a key utilit
 | produce structured Dart values from supported keys | parse supported keyId strings |
 | return stable validation failures for tests and diagnostics | reject malformed or unsupported key shapes |
 | provide root path terminal kind and hierarchy data | expose derived fields |
-| support operations such as parent ancestor chain and root checks | provide upward traversal helpers |
-| support descendant checks across candidate keys with optional depth limits | provide downward relationship helpers |
+| support operations such as parent ancestor chain and root checks on strings and ParsedKey values | provide upward traversal helpers |
+| support descendant checks across candidate keys with optional depth limits on strings and ParsedKey values | provide downward relationship helpers |
 | keep persisted and compared key strings stable | serialize parsed keys back to canonical form |
 
 ### 02 Product Shape
@@ -59,6 +59,7 @@ Main capability areas and preferred API direction.
 | --- | --- |
 | parsed-key-types | prefer immutable parsed key types |
 | parsing-entrypoints | provide parsing and validation entrypoints |
+| parsed-key-operations | provide navigation helpers that operate directly on ParsedKey values |
 | navigation-helpers | expose helpers for parent root ancestor and hierarchy inspection |
 | relationship-helpers | include helpers such as isDescendantOf and descendant filtering across candidate keys |
 | collection-helpers | support utility operations over lists of keys including optional inclusion of the root key and maximum depth |
@@ -81,8 +82,8 @@ Main capability areas and preferred API direction.
 | --- | --- | --- |
 | key-parser | supported keyId grammar for current Yggdrasil examples | unbounded future grammar design |
 | derived-fields | root path principal scope hierarchy and terminal kind | application-specific meaning inferred from key kinds |
-| navigation-helpers | parent root and ancestor helpers over one key | resource loading or tree persistence |
-| relationship-helpers | descendant checks descendant filtering canonical equality and same-root checks | access policy evaluation |
+| navigation-helpers | parent root and ancestor helpers over one key string or ParsedKey | resource loading or tree persistence |
+| relationship-helpers | descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values | access policy evaluation |
 | validation | stable parse failures for malformed key strings | UI form frameworks or remote validation protocols |
 | serialization | canonical keyId round-trip helpers | local database sync engine |
 
@@ -91,9 +92,9 @@ Main capability areas and preferred API direction.
 | minimum_library_support | priority | usecase | why_it_matters |
 | --- | --- | --- | --- |
 | parse into structured segments or return stable parse errors | 1 | parse supported keyIds | lets Dart code reason about keys without reimplementing ad hoc string logic |
-| provide parent and isRoot helpers | 2 | get the parent or root of a key | lets app code navigate keys like paths |
-| return ancestor chain in deterministic order | 3 | get all ancestors of a key | lets app code build breadcrumbs and upward traversals |
-| provide descendant filtering with include-self and max-depth options | 4 | check descendant relationships within a list of keys | lets app code find related keys without building custom traversal code |
+| provide parent and isRoot helpers for string inputs | 2 | get the parent or root of a key string | lets app code navigate raw keys like paths |
+| provide ParsedKey-based parent and ancestor helpers | 3 | get parent or ancestors from a parsed key | lets app code avoid re-parsing when a ParsedKey is already available |
+| provide descendant filtering with include-self and max-depth options for strings and ParsedKey values | 4 | check descendant relationships within a list of keys | lets app code find related keys without building custom traversal code |
 | return root and path based hierarchy | 5 | derive kind hierarchy | lets app code inspect key meaning without reparsing string segments manually |
 | serialize parsed key back to canonical keyId | 6 | keep canonical string form | lets app code compare and persist keys consistently |
 
@@ -184,6 +185,14 @@ export type DescendantQuery = {
   maxDepth?: number;
 };
 
+export interface ParsedKeyNavigator {
+  isRoot(parsed: ParsedKey): boolean;
+  parentOf(parsed: ParsedKey): ParsedKey | null;
+  ancestorsOf(parsed: ParsedKey): ParsedKey[];
+  isDescendantOf(root: ParsedKey, candidate: ParsedKey): boolean;
+  descendantsOf(root: ParsedKey, candidateKeys: ParsedKey[], query?: DescendantQuery): ParsedKey[];
+}
+
 export type DerivedKind = {
   hierarchy: string[];
 };
@@ -215,7 +224,7 @@ API-shape examples for the Dart package.
 #### Parser API Example Shapes
 
 ```ts
-import type { DescendantQuery, DerivedKind, ParsedKey } from './common';
+import type { DescendantQuery, DerivedKind, ParsedKey, ParsedKeyNavigator } from './common';
 
 export type ParseResult =
   | { ok: true; value: ParsedKey }
@@ -234,9 +243,12 @@ export interface BeamingYggdrasilKeyParser {
   toCanonicalString(parsed: ParsedKey): string;
 }
 
+export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
+
 // Dart translation guidance:
 // - prefer explicit result types over throwing for ordinary validation failures
 // - keep error messages stable enough for tests and diagnostics
 // - keep the package lightweight, closer to a path utility than a framework
+// - parsed-key helpers should work directly on ParsedKey values without forcing a string round trip
 ```
 

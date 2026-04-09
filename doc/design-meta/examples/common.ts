@@ -19,6 +19,14 @@ export type DescendantQuery = {
   maxDepth?: number;
 };
 
+export interface ParsedKeyNavigator {
+  isRoot(parsed: ParsedKey): boolean;
+  parentOf(parsed: ParsedKey): ParsedKey | null;
+  ancestorsOf(parsed: ParsedKey): ParsedKey[];
+  isDescendantOf(root: ParsedKey, candidate: ParsedKey): boolean;
+  descendantsOf(root: ParsedKey, candidateKeys: ParsedKey[], query?: DescendantQuery): ParsedKey[];
+}
+
 export type DerivedKind = {
   hierarchy: string[];
 };

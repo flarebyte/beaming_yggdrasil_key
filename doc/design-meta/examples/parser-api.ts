@@ -1,4 +1,4 @@
-import type { DescendantQuery, DerivedKind, ParsedKey } from './common';
+import type { DescendantQuery, DerivedKind, ParsedKey, ParsedKeyNavigator } from './common';
 
 export type ParseResult =
   | { ok: true; value: ParsedKey }
@@ -17,7 +17,10 @@ export interface BeamingYggdrasilKeyParser {
   toCanonicalString(parsed: ParsedKey): string;
 }
 
+export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
+
 // Dart translation guidance:
 // - prefer explicit result types over throwing for ordinary validation failures
 // - keep error messages stable enough for tests and diagnostics
 // - keep the package lightweight, closer to a path utility than a framework
+// - parsed-key helpers should work directly on ParsedKey values without forcing a string round trip
