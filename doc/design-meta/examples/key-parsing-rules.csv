@@ -5,6 +5,7 @@ reserved-values,underscore means intrinsic and tilde means contextual self refer
 segment-model,each label:value pair is one atomic segment,semantic interpretation comes from labels and position instead of a duplicated segment kind field
 schema-driven-validation,the parser must validate by traversing a schema from parent label to allowed child labels,path ordering and child rules are declarative rather than hardcoded
 schema-node-rules,each schema node defines allowed value types child labels and whether the node is terminal,this keeps grammar logic in data instead of parser branches
+repetition-rules,a label is repeatable only when it appears in its own childLabels set,no separate repeatability flag is required
 depth-limits,maximum depth is defined in schema config in segment units,the parser counts label:value pairs rather than raw colon-delimited tokens
 id-constraints,identifier values must satisfy schema-level minimum length maximum length and allowed character pattern,this applies only to id values and not to reserved values underscore or tilde
 terminal-segments,terminal nodes are determined by schema and must reject children,no hardcoded terminal label checks are required in parser code

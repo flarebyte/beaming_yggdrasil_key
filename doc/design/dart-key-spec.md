@@ -61,6 +61,7 @@ Main capability areas and preferred API direction.
 | segment-model | represent segments minimally as label plus value and keep semantic interpretation in derived helpers |
 | schema-input | accept a schema that defines allowed labels value types child labels and terminal behavior |
 | schema-config | keep max depth min and max id length plus allowed id characters in schema config rather than parser constants |
+| repetition-model | derive repeatability from whether a label appears in its own childLabels set instead of storing a separate flag |
 | parsing-entrypoints | provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic |
 | parsed-key-operations | provide navigation helpers that operate directly on ParsedKey values |
 | navigation-helpers | expose helpers for parent root ancestor and hierarchy inspection |
@@ -96,7 +97,6 @@ export type KeySchemaNode = {
   valueTypes: SchemaValueType[];
   childLabels: string[];
   terminal?: boolean;
-  repeatable?: boolean;
 };
 
 export type KeySchema = {
@@ -173,6 +173,7 @@ Current supported key parsing rules.
 | semantic interpretation comes from labels and position instead of a duplicated segment kind field | each label:value pair is one atomic segment | segment-model |
 | path ordering and child rules are declarative rather than hardcoded | the parser must validate by traversing a schema from parent label to allowed child labels | schema-driven-validation |
 | this keeps grammar logic in data instead of parser branches | each schema node defines allowed value types child labels and whether the node is terminal | schema-node-rules |
+| no separate repeatability flag is required | a label is repeatable only when it appears in its own childLabels set | repetition-rules |
 | the parser counts label:value pairs rather than raw colon-delimited tokens | maximum depth is defined in schema config in segment units | depth-limits |
 | this applies only to id values and not to reserved values underscore or tilde | identifier values must satisfy schema-level minimum length maximum length and allowed character pattern | id-constraints |
 | no hardcoded terminal label checks are required in parser code | terminal nodes are determined by schema and must reject children | terminal-segments |
@@ -258,7 +259,6 @@ export type KeySchemaNode = {
   valueTypes: SchemaValueType[];
   childLabels: string[];
   terminal?: boolean;
-  repeatable?: boolean;
 };
 
 export type KeySchema = {
@@ -337,5 +337,6 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
 // - structure validation should traverse the schema instead of hardcoding allowed label order in parser code
 // - schema config should define max depth in segment units plus id minimum length maximum length and allowed id characters
+// - repeatability should be derived from schema childLabels rather than a separate node flag
 ```
 

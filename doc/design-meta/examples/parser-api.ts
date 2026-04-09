@@ -29,3 +29,4 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
 // - structure validation should traverse the schema instead of hardcoding allowed label order in parser code
 // - schema config should define max depth in segment units plus id minimum length maximum length and allowed id characters
+// - repeatability should be derived from schema childLabels rather than a separate node flag

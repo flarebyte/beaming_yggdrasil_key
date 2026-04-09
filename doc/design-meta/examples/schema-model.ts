@@ -12,7 +12,6 @@ export type KeySchemaNode = {
   valueTypes: SchemaValueType[];
   childLabels: string[];
   terminal?: boolean;
-  repeatable?: boolean;
 };
 
 export type KeySchema = {
