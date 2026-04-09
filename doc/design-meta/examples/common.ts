@@ -14,6 +14,11 @@ export type ParsedKey = {
   terminalKind: string;
 };
 
+export type DescendantQuery = {
+  includeSelf?: boolean;
+  maxDepth?: number;
+};
+
 export type DerivedKind = {
   hierarchy: string[];
 };

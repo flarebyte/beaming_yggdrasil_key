@@ -1,5 +1,5 @@
 boundary_point,expected_direction
-transport DTOs,should still allow raw keyId strings
+plain string usage,applications should still be free to keep raw key strings where richer helpers are unnecessary
 applications needing richer key tooling,should opt into beaming_yggdrasil_key explicitly
-relationship between transport and key semantics,should remain explicit rather than hidden inside DTO parsing
-dependency direction,beaming_yggdrasil should be able to depend on beaming_yggdrasil_key without requiring it for basic transport usage
+relationship between raw strings and parsed keys,should remain explicit rather than hidden behind implicit conversions
+dependency direction,packages can depend on beaming_yggdrasil_key when they want path-like key utilities without pulling broader concerns

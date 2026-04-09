@@ -7,13 +7,13 @@ modules: ["core"]
 reports: [{
 	title:       "beaming_yggdrasil_key Design"
 	filepath:    "../design/dart-key-spec.md"
-	description: "Key-first Dart library spec for Yggdrasil logical key parsing and derived metadata."
+	description: "Dart key utility spec for parsing, navigation, and relationship checks on Yggdrasil-style keys."
 	sections: [{
 		title:       "01 Overview"
-		description: "Purpose, scope, and package boundary."
+		description: "Purpose, scope, and intended lightweight usage."
 		sections: [{
 			title:       "01 Purpose and Scope"
-			description: "Repository target, library goal, and key-first ownership boundaries."
+			description: "Repository target, library goal, and the narrow responsibilities of a key utility package."
 			notes: [
 				"dart.key.goals",
 				"dart.key.design-ownership",
@@ -22,7 +22,7 @@ reports: [{
 			]
 		}, {
 			title:       "02 Product Shape"
-			description: "Major library areas, package boundary, and preferred API direction."
+			description: "Main capability areas and preferred API direction."
 			notes: [
 				"dart.key.scope",
 				"dart.key.package-boundary",

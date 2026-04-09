@@ -1,5 +1,5 @@
 non_goal,why_out_of_scope
-make network calls,this package should model keys not execute transport
-embed HTTP status or envelope logic,transport concerns belong in another package
-perform access-control decisions,authorization policy should stay in higher-level application logic
+make product-level decisions from keys alone,key interpretation beyond structural helpers belongs in higher-level application logic
+perform access-control decisions,authorization policy should stay outside the key utility package
+embed storage or synchronization behavior,the package should stay focused on parsing and key relationship operations
 force every future product to use one serialized key format,the library should stay narrow to supported shapes and evolve deliberately

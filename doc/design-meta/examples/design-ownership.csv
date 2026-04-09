@@ -1,6 +1,6 @@
 area,should_own,should_not_own
-parsing,keyId parsing,HTTP request execution
-validation,key validation,WebSocket sessions
-derived-data,derived kind and hierarchy helpers,server envelope DTOs
-structured-data,structured key segments,admin mock-server commands
-serialization,canonical serialization helpers,transport-specific retry or session logic
+parsing,keyId parsing,application workflow orchestration
+validation,key validation,authorization or policy decisions
+navigation,parent ancestor and descendant helpers,data fetching or indexing
+structured-data,structured key segments,domain-specific business rules unrelated to keys
+serialization,canonical serialization helpers,storage engines or sync logic
