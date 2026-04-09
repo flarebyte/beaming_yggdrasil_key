@@ -110,16 +110,18 @@ Current supported key parsing rules.
 
 | notes | rule | topic |
 | --- | --- | --- |
-| empty keyId is invalid | split keyId by colon | tokenization |
+| empty keyId is invalid and token count must be even | split keyId by colon into label value pairs | tokenization |
+| this removes ambiguity from bare labels | every segment must use the form label:value | uniform-segments |
+| all other values are opaque identifiers | underscore means intrinsic and tilde means contextual self reference | reserved-values |
 | keeps grammar narrow to supported examples | first scope segment must currently be tenant or department | scope-level-1 |
 | only one optional level is supported today | optional second scope segment may be group team or region | scope-level-2 |
 | principal sits after scope and before root | optional principal segment may be user member or subscriber | principal |
 | root is required | root segment must currently be dashboard or profile | root |
 | these are descendant container segments | path may include note or comment with explicit ids | path-id-segments |
 | branch labels are limited to supported examples | path may include like language or thumbnail branches | path-branch-segments |
-| terminal segments cannot have children | text and count are terminal labels | terminal-segments |
-| this matches current supported like principal shape | user member or subscriber may follow like only with value underscore | like-principal |
-| keeps alias usage narrow and explicit | underscore alias is only allowed after language or thumbnail | alias-underscore |
+| terminal segments cannot have children | text:_ and count:_ are terminal segments | terminal-segments |
+| this keeps the supported like principal shape while preserving label:value form | user:_ member:_ or subscriber:_ may follow like:_ | like-principal |
+| canonical serialization always keeps the explicit underscore | language:_ thumbnail:_ like:_ text:_ and count:_ use underscore for intrinsic value | intrinsic-branches |
 
 ### 02 Acceptance Examples
 
@@ -130,10 +132,11 @@ Key examples that should parse successfully.
 | expected_root | expected_terminal_kind | key_id | notes |
 | --- | --- | --- | --- |
 | dashboard | dashboard | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07 | root key |
-| dashboard | text | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:text | note text leaf |
-| dashboard | count | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:like:count | derived count leaf |
-| dashboard | thumbnail | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:thumbnail:_ | thumbnail alias leaf |
-| dashboard | language | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:language:_ | language alias leaf |
+| dashboard | text | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:text:_ | note text leaf with explicit intrinsic value |
+| dashboard | count | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:like:_:count:_ | derived count leaf with explicit intrinsic segments |
+| dashboard | thumbnail | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:thumbnail:_ | thumbnail intrinsic leaf |
+| dashboard | language | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:language:_ | language intrinsic leaf |
+| dashboard | dashboard | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:~ | contextual self principal using reserved tilde |
 | profile | profile | department:d1:team:t1:profile:p1 | alternate supported scope and root labels |
 
 ### 03 Rejection Examples
@@ -147,11 +150,13 @@ Key examples that should fail deterministically.
 | invalid key: empty key |  |
 | invalid key: incomplete key | tenant |
 | invalid key because root id is missing | tenant:t8f3a1c2:dashboard |
+| invalid key because every segment must include label and value | tenant:t8f3a1c2:group |
+| invalid key because intrinsic terminal segments must use explicit underscore value | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:text |
 | invalid key: unsupported label "missing" | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:missing:n1:text |
 | invalid key because underscore alias must follow an explicit allowed label | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:_ |
-| invalid key because terminal segment cannot have children | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:text:child |
+| invalid key because terminal segment cannot have children | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:text:_:child:c1 |
 | invalid key because principal labels are not allowed in that position | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:u1 |
-| invalid key because like principal must use underscore | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:like:user:u1 |
+| invalid key because like principal must use reserved intrinsic or contextual values | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:like:_:user:u1 |
 
 ## 03 Derived Data
 
@@ -166,7 +171,7 @@ Structured and derived values exposed by the parser.
 ```ts
 export type Segment = {
   label: string;
-  value?: string;
+  value: string;
   kind: string;
 };
 
@@ -206,7 +211,7 @@ export type ParseFailure = {
 
 | derived_field | meaning | source |
 | --- | --- | --- |
-| canonical | the canonical keyId string representation | original validated token sequence |
+| canonical | the canonical keyId string representation using explicit label:value pairs | original validated token sequence after deterministic serialization |
 | scope | structured scope segments | leading id segments before principal or root |
 | principal | optional structured principal segment | optional user member or subscriber segment |
 | root | required structured root segment | first supported root label and id |
@@ -250,5 +255,6 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - keep error messages stable enough for tests and diagnostics
 // - keep the package lightweight, closer to a path utility than a framework
 // - parsed-key helpers should work directly on ParsedKey values without forcing a string round trip
+// - canonical string form should always use explicit label:value pairs
 ```
 

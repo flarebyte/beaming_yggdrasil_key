@@ -24,3 +24,4 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - keep error messages stable enough for tests and diagnostics
 // - keep the package lightweight, closer to a path utility than a framework
 // - parsed-key helpers should work directly on ParsedKey values without forcing a string round trip
+// - canonical string form should always use explicit label:value pairs

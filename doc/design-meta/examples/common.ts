@@ -1,6 +1,6 @@
 export type Segment = {
   label: string;
-  value?: string;
+  value: string;
   kind: string;
 };
 
