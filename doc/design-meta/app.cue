@@ -26,6 +26,7 @@ reports: [{
 			notes: [
 				"dart.key.scope",
 				"dart.key.schema-model",
+				"dart.key.schema-validation",
 				"dart.key.package-boundary",
 				"dart.key.api-direction",
 				"dart.key.usecases",
@@ -114,6 +115,12 @@ notes: [
 		title: "Schema Model"
 		filepath: "examples/schema-model.ts"
 		labels: ["typescript", "schema"]
+	},
+	{
+		name:  "dart.key.schema-validation"
+		title: "Schema Validation"
+		filepath: "examples/schema-validation.ts"
+		labels: ["typescript", "schema", "validation"]
 	},
 	{
 		name:  "dart.key.package-boundary"

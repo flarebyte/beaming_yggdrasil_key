@@ -1,4 +1,4 @@
-import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SplitKey, SplitKeyBatch, ValidationMode } from './common';
+import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SchemaValidationOptions, SchemaValidationResult, SplitKey, SplitKeyBatch, ValidationMode } from './common';
 
 export type ParseResult =
   | { ok: true; value: ParsedKey }
@@ -6,6 +6,7 @@ export type ParseResult =
 
 export interface BeamingYggdrasilKeyParser {
   schema: KeySchema;
+  validateSchema(schema: KeySchema, options?: SchemaValidationOptions): SchemaValidationResult;
   parse(keyId: string): ParseResult;
   mustParse(keyId: string): ParsedKey;
   isValid(keyId: string): boolean;
@@ -38,3 +39,6 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - Dart identifier checks can use direct code-unit comparisons and a small extra-character whitelist instead of regex
 // - split/combine helpers should expose labels and values as parallel arrays of equal size for single keys and batches
 // - batch validation should default to stop-first, with collect-invalids reserved for debugging workflows
+// - schema validation should detect cycles broken child references unreachable nodes and risky shapes before key parsing begins
+// - shared descendants are allowed so nodesByLabel may describe a DAG, but cycles must always be rejected
+// - schema validation options should tune warning thresholds without weakening structural error checks

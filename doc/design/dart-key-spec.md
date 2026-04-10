@@ -64,7 +64,9 @@ Main capability areas and preferred API direction.
 | parsed-key-types | prefer immutable parsed key types |
 | segment-model | represent segments minimally as label plus value and keep semantic interpretation in derived helpers |
 | schema-input | accept a schema that defines allowed labels value types child labels and terminal behavior |
+| schema-graph | allow shared child definitions across parents but validate schema edges so loops are always rejected |
 | schema-config | keep max depth min and max id length plus explicit id character policy in schema config rather than parser constants |
+| schema-validation | validate schemas with explicit options for cycles undefined child links unreachable nodes and risky shapes before using them for parsing |
 | repetition-model | derive repeatability from whether a label appears in its own childLabels set instead of storing a separate flag |
 | parsing-entrypoints | provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic |
 | split-combine-helpers | provide explicit helpers to split keys into label and value arrays and combine them back for single keys and batches |
@@ -141,12 +143,74 @@ export const exampleSchema: KeySchema = {
 };
 ```
 
+#### Schema Validation
+
+```ts
+import type { KeySchema, SchemaValidationIssue, SchemaValidationOptions, SchemaValidationResult } from './common';
+
+export interface BeamingYggdrasilSchemaValidator {
+  validateSchema(schema: KeySchema, options?: SchemaValidationOptions): SchemaValidationResult;
+}
+
+export const schemaValidationChecks = [
+  'rootLabels must exist in nodesByLabel',
+  'every child label must reference an existing node',
+  'shared descendants are allowed, so the schema may be a DAG',
+  'cycles must be reported as errors, including self-loops and longer loops',
+  'terminal nodes should not declare childLabels',
+  'unreachable nodes should be reported at least as warnings',
+  'risky shapes such as very broad fan-out or excessive configured depth may be warnings in tolerant mode',
+];
+
+export const schemaValidationAlgorithms = [
+  'referential-integrity pass: verify every rootLabels entry and every childLabels entry points to a defined node',
+  'reachability pass: traverse from rootLabels and warn for any node never reached',
+  'cycle-detection pass: run DFS with visiting and visited states so DAG reuse is accepted but loops are rejected',
+  'shape-risk pass: emit warnings for unusual fan-out root count or reachable-node volume based on configured thresholds',
+];
+
+export const exampleIssues: SchemaValidationIssue[] = [
+  {
+    severity: 'error',
+    code: 'schema.cycle',
+    message: 'Cycle detected: dashboard -> note -> dashboard',
+    path: ['dashboard', 'note', 'dashboard'],
+  },
+  {
+    severity: 'error',
+    code: 'schema.undefined_child',
+    message: 'Node like references undefined child label reaction',
+    label: 'like',
+  },
+  {
+    severity: 'warning',
+    code: 'schema.unreachable',
+    message: 'Node audit is not reachable from any configured root label',
+    label: 'audit',
+  },
+  {
+    severity: 'warning',
+    code: 'schema.excessive_fan_out',
+    message: 'Node dashboard declares 48 child labels which exceeds the warning threshold',
+    label: 'dashboard',
+  },
+];
+
+// Validation guidance:
+// - strict mode should fail when any error is present
+// - tolerant mode may return warnings for risky but still parseable shapes
+// - schema validation should happen before parser construction or before accepting an externally supplied schema
+// - structural errors must stay errors in every mode; tolerant mode only relaxes risky-shape reporting
+```
+
 #### Library Scope
 
 | area | in_scope | out_of_scope |
 | --- | --- | --- |
 | key-parser | schema-driven parsing of supported keyId grammar for current Yggdrasil examples | hardcoded path ordering or child rules inside parser code |
 | schema-definition | normalized schema map keyed by label with child and value constraints plus schema config for depth and identifier validation | ad hoc grammar branches spread across parser implementation |
+| schema-validation | cycle checks broken child reference checks unreachable-node checks and risky-shape warnings | trusting unvalidated schema input in security-sensitive paths |
+| schema-safety | allow DAG-style schema reuse but reject loops and incompatible terminal-child declarations | treating every graph shape as equally safe |
 | derived-fields | root path principal scope hierarchy and terminal kind derived from labels and schema position | application-specific meaning inferred from key kinds |
 | navigation-helpers | parent root and ancestor helpers over one key string or ParsedKey | resource loading or tree persistence |
 | relationship-helpers | descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values | access policy evaluation |
@@ -157,18 +221,20 @@ export const exampleSchema: KeySchema = {
 
 | minimum_library_support | priority | usecase | why_it_matters |
 | --- | --- | --- | --- |
-| parse into structured segments while traversing schema node definitions | 1 | parse supported keyIds with a schema | lets Dart code validate grammar without hardcoding path rules |
-| return equal-length labels and values arrays for one key | 2 | split a key into schema and value arrays | lets algorithms work on labels and values separately without reparsing |
-| return parallel label and value arrays for each key in a batch | 3 | split a list of keys into schema and value arrays | lets batch algorithms reuse tokenized structure across many keys |
-| combine equal-length label and value arrays back into canonical keys | 4 | rebuild keys from split parts | lets callers transform or compare separated parts and then recover canonical strings |
-| provide parent and isRoot helpers for string inputs after schema validation | 5 | get the parent or root of a key string | lets app code navigate raw keys like paths |
-| provide ParsedKey-based parent and ancestor helpers | 6 | get parent or ancestors from a parsed key | lets app code avoid re-parsing when a ParsedKey is already available |
-| provide descendant filtering with include-self and max-depth options for strings and ParsedKey values | 7 | check descendant relationships within a list of keys | lets app code find related keys without building custom traversal code |
-| accept a normalized schema map keyed by label with explicit config | 8 | configure grammar through schema data | lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites |
-| validate max depth in segment units plus id min length max length and explicit character policy from schema config | 9 | enforce bounded depth and identifier constraints | lets applications reject pathological or malformed keys consistently |
-| provide stop-first as the default validation mode | 10 | stop batch validation on first failure by default | lets large validation runs abort quickly when the input set is already known to be bad |
-| provide an explicit collect-invalids mode without changing the fast default | 11 | collect all invalid keys when debugging | lets developers inspect the full set of failures when needed |
-| serialize parsed key back to canonical keyId | 12 | keep canonical string form | lets app code compare and persist keys consistently |
+| report cycles broken child links unreachable labels and risky shapes with severity | 1 | validate schemas before use | lets applications reject or warn on dangerous grammar definitions before parsing starts |
+| allow warnings for risky but still parseable models while still rejecting structural errors | 2 | validate externally supplied schema with warnings | lets applications screen config supplied schemas before enabling them at runtime |
+| parse into structured segments while traversing schema node definitions | 3 | parse supported keyIds with a schema | lets Dart code validate grammar without hardcoding path rules |
+| return equal-length labels and values arrays for one key | 4 | split a key into schema and value arrays | lets algorithms work on labels and values separately without reparsing |
+| return parallel label and value arrays for each key in a batch | 5 | split a list of keys into schema and value arrays | lets batch algorithms reuse tokenized structure across many keys |
+| combine equal-length label and value arrays back into canonical keys | 6 | rebuild keys from split parts | lets callers transform or compare separated parts and then recover canonical strings |
+| provide parent and isRoot helpers for string inputs after schema validation | 7 | get the parent or root of a key string | lets app code navigate raw keys like paths |
+| provide ParsedKey-based parent and ancestor helpers | 8 | get parent or ancestors from a parsed key | lets app code avoid re-parsing when a ParsedKey is already available |
+| provide descendant filtering with include-self and max-depth options for strings and ParsedKey values | 9 | check descendant relationships within a list of keys | lets app code find related keys without building custom traversal code |
+| accept a normalized schema map keyed by label with explicit config | 10 | configure grammar through schema data | lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites |
+| validate max depth in segment units plus id min length max length and explicit character policy from schema config | 11 | enforce bounded depth and identifier constraints | lets applications reject pathological or malformed keys consistently |
+| provide stop-first as the default validation mode | 12 | stop batch validation on first failure by default | lets large validation runs abort quickly when the input set is already known to be bad |
+| provide an explicit collect-invalids mode without changing the fast default | 13 | collect all invalid keys when debugging | lets developers inspect the full set of failures when needed |
+| serialize parsed key back to canonical keyId | 14 | keep canonical string form | lets app code compare and persist keys consistently |
 
 ## 02 Parsing Contract
 
@@ -188,6 +254,7 @@ Current supported key parsing rules.
 | semantic interpretation comes from labels and position instead of a duplicated segment kind field | each label:value pair is one atomic segment | segment-model |
 | path ordering and child rules are declarative rather than hardcoded | the parser must validate by traversing a schema from parent label to allowed child labels | schema-driven-validation |
 | this keeps grammar logic in data instead of parser branches | each schema node defines allowed value types child labels and whether the node is terminal | schema-node-rules |
+| cycles must still be rejected during schema validation | the schema may be a DAG because different parents may reference the same child label | schema-graph-shape |
 | no separate repeatability flag is required | a label is repeatable only when it appears in its own childLabels set | repetition-rules |
 | the parser counts label:value pairs rather than raw colon-delimited tokens | maximum depth is defined in schema config in segment units | depth-limits |
 | this applies only to id values and not to reserved values underscore or tilde | identifier values must satisfy schema-level minimum length maximum length and allowed character policy | id-constraints |
@@ -297,6 +364,30 @@ export type KeySchema = {
   nodesByLabel: Record<string, KeySchemaNode>;
 };
 
+export type SchemaValidationSeverity = 'error' | 'warning';
+
+export type SchemaValidationMode = 'strict' | 'tolerant';
+
+export interface SchemaValidationOptions {
+  mode?: SchemaValidationMode;
+  maxChildLabelsWarning?: number;
+  maxRootLabelsWarning?: number;
+  maxReachableNodesWarning?: number;
+}
+
+export interface SchemaValidationIssue {
+  severity: SchemaValidationSeverity;
+  code: string;
+  message: string;
+  label?: string;
+  path?: string[];
+}
+
+export interface SchemaValidationResult {
+  ok: boolean;
+  issues: SchemaValidationIssue[];
+}
+
 export interface ParsedKeyNavigator {
   isRoot(parsed: ParsedKey): boolean;
   parentOf(parsed: ParsedKey): ParsedKey | null;
@@ -336,7 +427,7 @@ API-shape examples for the Dart package.
 #### Parser API Example Shapes
 
 ```ts
-import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SplitKey, SplitKeyBatch, ValidationMode } from './common';
+import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SchemaValidationOptions, SchemaValidationResult, SplitKey, SplitKeyBatch, ValidationMode } from './common';
 
 export type ParseResult =
   | { ok: true; value: ParsedKey }
@@ -344,6 +435,7 @@ export type ParseResult =
 
 export interface BeamingYggdrasilKeyParser {
   schema: KeySchema;
+  validateSchema(schema: KeySchema, options?: SchemaValidationOptions): SchemaValidationResult;
   parse(keyId: string): ParseResult;
   mustParse(keyId: string): ParsedKey;
   isValid(keyId: string): boolean;
@@ -376,6 +468,9 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - Dart identifier checks can use direct code-unit comparisons and a small extra-character whitelist instead of regex
 // - split/combine helpers should expose labels and values as parallel arrays of equal size for single keys and batches
 // - batch validation should default to stop-first, with collect-invalids reserved for debugging workflows
+// - schema validation should detect cycles broken child references unreachable nodes and risky shapes before key parsing begins
+// - shared descendants are allowed so nodesByLabel may describe a DAG, but cycles must always be rejected
+// - schema validation options should tune warning thresholds without weakening structural error checks
 ```
 
 ### 03 Performance API

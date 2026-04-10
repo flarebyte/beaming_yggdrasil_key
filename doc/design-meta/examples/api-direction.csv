@@ -2,7 +2,9 @@ api_area,preferred_direction
 parsed-key-types,prefer immutable parsed key types
 segment-model,represent segments minimally as label plus value and keep semantic interpretation in derived helpers
 schema-input,accept a schema that defines allowed labels value types child labels and terminal behavior
+schema-graph,allow shared child definitions across parents but validate schema edges so loops are always rejected
 schema-config,keep max depth min and max id length plus explicit id character policy in schema config rather than parser constants
+schema-validation,validate schemas with explicit options for cycles undefined child links unreachable nodes and risky shapes before using them for parsing
 repetition-model,derive repeatability from whether a label appears in its own childLabels set instead of storing a separate flag
 parsing-entrypoints,provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic
 split-combine-helpers,provide explicit helpers to split keys into label and value arrays and combine them back for single keys and batches

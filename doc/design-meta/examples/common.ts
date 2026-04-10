@@ -54,6 +54,30 @@ export type KeySchema = {
   nodesByLabel: Record<string, KeySchemaNode>;
 };
 
+export type SchemaValidationSeverity = 'error' | 'warning';
+
+export type SchemaValidationMode = 'strict' | 'tolerant';
+
+export interface SchemaValidationOptions {
+  mode?: SchemaValidationMode;
+  maxChildLabelsWarning?: number;
+  maxRootLabelsWarning?: number;
+  maxReachableNodesWarning?: number;
+}
+
+export interface SchemaValidationIssue {
+  severity: SchemaValidationSeverity;
+  code: string;
+  message: string;
+  label?: string;
+  path?: string[];
+}
+
+export interface SchemaValidationResult {
+  ok: boolean;
+  issues: SchemaValidationIssue[];
+}
+
 export interface ParsedKeyNavigator {
   isRoot(parsed: ParsedKey): boolean;
   parentOf(parsed: ParsedKey): ParsedKey | null;
