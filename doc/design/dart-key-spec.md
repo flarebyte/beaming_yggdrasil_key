@@ -477,3 +477,17 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 | compare validated segment prefixes instead of reparsing full candidates every time | prefix-scan-children | may still be linear without a dedicated index | find children or descendants by scanning many keys |
 | build an index keyed by canonical parent or validated prefix for faster repeated queries | indexed-children-lookup | index build and update cost may not pay off for small sets | repeated child retrieval over large stable sets |
 
+#### Performance Test Suggestions
+
+| fixture_shape | goal | main_assertions | test_kind |
+| --- | --- | --- | --- |
+| same valid key repeated many times | compare single-key validator overhead | streaming path stays at least as fast as token-array for ordinary validation | micro-benchmark-single-key |
+| thousands to tens of thousands of valid unique keys | measure scaling on large distinct batches | compiled or split-based batch strategies reduce per-key overhead as batch size grows | batch-benchmark-unique-keys |
+| large batch with many identical keys | measure benefit of duplicate elimination | deduplicated-split strategy validates fewer unique items than input batch size and outperforms naive repeated validation | batch-benchmark-duplicate-keys |
+| many keys sharing long common prefixes | measure prefix reuse | prefix-cached and prefix-state-split strategies outperform restart-from-root validation | batch-benchmark-shared-prefixes |
+| batches with an invalid key early middle and late in the list | measure stop-first versus collect-invalids cost | stop-first exits earlier and allocates less than collect-invalids | mixed-validity-benchmark |
+| large batches of canonical keys | measure split and combine overhead | split helpers preserve equal label/value lengths and combine helpers round-trip back to canonical strings | split-helper-benchmark |
+| one root with thousands of candidate keys | compare child retrieval by scan | prefix-scan child lookup returns the same result set as a trusted baseline | children-scan-benchmark |
+| repeated child queries over a stable large key set | measure indexed child retrieval payoff | index build cost is visible but repeated lookups become faster than repeated scans after enough queries | children-index-benchmark |
+| stable representative datasets checked into test fixtures | catch accidental slowdowns | wall-clock or operation-count thresholds fail when a strategy regresses materially | regression-threshold-test |
+

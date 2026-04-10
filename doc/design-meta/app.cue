@@ -61,7 +61,7 @@ reports: [{
 		}, {
 			title:       "03 Performance API"
 			description: "Validation and scanning strategies for large key sets."
-			notes: ["dart.key.performance-strategies", "dart.key.performance-api"]
+			notes: ["dart.key.performance-strategies", "dart.key.performance-api", "dart.key.performance-tests"]
 		}]
 	}]
 }]
@@ -181,6 +181,13 @@ notes: [
 		title: "Performance API Example Shapes"
 		filepath: "examples/performance-api.ts"
 		labels: ["typescript", "api", "performance"]
+	},
+	{
+		name:  "dart.key.performance-tests"
+		title: "Performance Test Suggestions"
+		filepath: "examples/performance-tests.csv"
+		arguments: ["format-csv=table"]
+		labels: ["performance", "testing", "csv"]
 	},
 ]
 
