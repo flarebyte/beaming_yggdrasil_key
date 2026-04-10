@@ -7,7 +7,6 @@ export type ParsedKey = {
   canonical: string;
   kindPath: string[];
   scope: Segment[];
-  principal?: Segment;
   root: Segment;
   path: Segment[];
   terminalKind: string;

@@ -7,5 +7,5 @@ tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:text,invalid key
 tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:missing:n1:text,"invalid key: unsupported label ""missing"""
 tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:_,invalid key because underscore alias must follow an explicit allowed label
 tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:text:_:child:c1,invalid key because terminal segment cannot have children
-tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:u1,invalid key because principal labels are not allowed in that position
-tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:like:_:user:u1,invalid key because like principal must use reserved intrinsic or contextual values
+tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:u1,invalid key because user only allows reserved contextual or intrinsic values in that position
+tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:like:_:user:u1,invalid key because user only allows reserved contextual or intrinsic values under like

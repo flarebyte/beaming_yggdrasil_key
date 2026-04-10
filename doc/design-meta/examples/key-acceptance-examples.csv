@@ -4,5 +4,5 @@ tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:text:_,dashboard
 tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:like:_:count:_,dashboard,count,derived count leaf with explicit intrinsic segments
 tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:thumbnail:_,dashboard,thumbnail,thumbnail intrinsic leaf
 tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:language:_,dashboard,language,language intrinsic leaf
-tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:~,dashboard,dashboard,contextual self principal using reserved tilde
+tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:~,dashboard,user,contextual self segment using reserved tilde
 department:d1:team:t1:profile:p1,profile,profile,alternate supported scope and root labels

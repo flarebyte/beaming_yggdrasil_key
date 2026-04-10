@@ -1,11 +1,10 @@
 derived_field,meaning,source
 canonical,the canonical keyId string representation using explicit label:value pairs,original validated token sequence after deterministic serialization
-scope,structured scope segments,leading id segments before principal or root
-principal,optional structured principal segment,optional user member or subscriber segment
+scope,structured scope segments,leading id segments before root
 root,required structured root segment,first supported root label and id
 path,structured descendant segments after root,remaining validated labels and ids
 parent_key,canonical key of the immediate parent when one exists,derived by removing the final effective segment from a parsed key
 ancestor_keys,ordered canonical keys from closest parent up to the root,derived by repeated parent traversal
-kind_path,label-only view of scope principal root and path,derived by reading each segment label in order after schema validation
+kind_path,label-only view of scope root and path,derived by reading each segment label in order after schema validation
 terminal_kind,the last effective kind for the key,derived from the label of the final validated path segment or from the root label when no path exists
 derived_kind_hierarchy,root plus path labels,derived from labels segment position and schema-validated path structure

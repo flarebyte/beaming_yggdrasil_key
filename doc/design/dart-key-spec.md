@@ -212,7 +212,7 @@ export const exampleIssues: SchemaValidationIssue[] = [
 | schema-definition | normalized schema map keyed by label with child and value constraints plus schema config for depth and identifier validation | ad hoc grammar branches spread across parser implementation |
 | schema-validation | cycle checks broken child reference checks unreachable-node checks and risky-shape warnings | trusting unvalidated schema input in security-sensitive paths |
 | schema-safety | allow DAG-style schema reuse but reject loops and incompatible terminal-child declarations | treating every graph shape as equally safe |
-| derived-fields | root path principal scope hierarchy and terminal kind derived from labels and schema position | application-specific meaning inferred from key kinds |
+| derived-fields | root path scope hierarchy and terminal kind derived from labels and schema position | application-specific meaning inferred from key kinds |
 | navigation-helpers | parent root and ancestor helpers over one key string or ParsedKey | resource loading or tree persistence |
 | relationship-helpers | descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values | access policy evaluation |
 | validation | stable parse failures for malformed key strings including depth and identifier min max and character policy failures | UI form frameworks or remote validation protocols |
@@ -278,7 +278,7 @@ Key examples that should parse successfully.
 | dashboard | count | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:like:_:count:_ | derived count leaf with explicit intrinsic segments |
 | dashboard | thumbnail | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:thumbnail:_ | thumbnail intrinsic leaf |
 | dashboard | language | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:language:_ | language intrinsic leaf |
-| dashboard | dashboard | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:~ | contextual self principal using reserved tilde |
+| dashboard | user | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:~ | contextual self segment using reserved tilde |
 | profile | profile | department:d1:team:t1:profile:p1 | alternate supported scope and root labels |
 
 ### 03 Rejection Examples
@@ -297,8 +297,8 @@ Key examples that should fail deterministically.
 | invalid key: unsupported label "missing" | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:missing:n1:text |
 | invalid key because underscore alias must follow an explicit allowed label | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:_ |
 | invalid key because terminal segment cannot have children | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:text:_:child:c1 |
-| invalid key because principal labels are not allowed in that position | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:u1 |
-| invalid key because like principal must use reserved intrinsic or contextual values | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:like:_:user:u1 |
+| invalid key because user only allows reserved contextual or intrinsic values in that position | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:u1 |
+| invalid key because user only allows reserved contextual or intrinsic values under like | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:like:_:user:u1 |
 
 ## 03 Derived Data
 
@@ -320,7 +320,6 @@ export type ParsedKey = {
   canonical: string;
   kindPath: string[];
   scope: Segment[];
-  principal?: Segment;
   root: Segment;
   path: Segment[];
   terminalKind: string;
@@ -413,13 +412,12 @@ export type ParseFailure = {
 | derived_field | meaning | source |
 | --- | --- | --- |
 | canonical | the canonical keyId string representation using explicit label:value pairs | original validated token sequence after deterministic serialization |
-| scope | structured scope segments | leading id segments before principal or root |
-| principal | optional structured principal segment | optional user member or subscriber segment |
+| scope | structured scope segments | leading id segments before root |
 | root | required structured root segment | first supported root label and id |
 | path | structured descendant segments after root | remaining validated labels and ids |
 | parent_key | canonical key of the immediate parent when one exists | derived by removing the final effective segment from a parsed key |
 | ancestor_keys | ordered canonical keys from closest parent up to the root | derived by repeated parent traversal |
-| kind_path | label-only view of scope principal root and path | derived by reading each segment label in order after schema validation |
+| kind_path | label-only view of scope root and path | derived by reading each segment label in order after schema validation |
 | terminal_kind | the last effective kind for the key | derived from the label of the final validated path segment or from the root label when no path exists |
 | derived_kind_hierarchy | root plus path labels | derived from labels segment position and schema-validated path structure |
 
