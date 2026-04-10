@@ -7,7 +7,7 @@ export type ParsedKey = {
   canonical: string;
   kindPath: string[];
   scope: Segment[];
-  root: Segment;
+  anchor: Segment;
   path: Segment[];
   terminalKind: string;
 };
@@ -49,7 +49,7 @@ export type KeySchemaNode = {
 
 export type KeySchema = {
   config: KeySchemaConfig;
-  rootLabels: string[];
+  anchorLabels: string[];
   nodesByLabel: Record<string, KeySchemaNode>;
 };
 

@@ -9,7 +9,7 @@ export const dashboardRootParsed: ParsedKey = {
     { label: 'tenant', value: 't8f3a1c2' },
     { label: 'group', value: 'g4b7d9e1' },
   ],
-  root: { label: 'dashboard', value: 'd1e52f07' },
+  anchor: { label: 'dashboard', value: 'd1e52f07' },
   path: [],
   terminalKind: 'dashboard',
 };
@@ -23,7 +23,7 @@ export const noteTextLeafParsed: ParsedKey = {
     { label: 'tenant', value: 't8f3a1c2' },
     { label: 'group', value: 'g4b7d9e1' },
   ],
-  root: { label: 'dashboard', value: 'd1e52f07' },
+  anchor: { label: 'dashboard', value: 'd1e52f07' },
   path: [
     { label: 'note', value: 'n7c401c2' },
     { label: 'text', value: '_' },
@@ -40,7 +40,7 @@ export const contextualUserParsed: ParsedKey = {
     { label: 'tenant', value: 't8f3a1c2' },
     { label: 'group', value: 'g4b7d9e1' },
   ],
-  root: { label: 'dashboard', value: 'd1e52f07' },
+  anchor: { label: 'dashboard', value: 'd1e52f07' },
   path: [
     { label: 'user', value: '~' },
   ],
@@ -56,7 +56,12 @@ export const profileRootParsed: ParsedKey = {
     { label: 'department', value: 'd1' },
     { label: 'team', value: 't1' },
   ],
-  root: { label: 'profile', value: 'p1' },
+  anchor: { label: 'profile', value: 'p1' },
   path: [],
   terminalKind: 'profile',
 };
+
+// ParsedKey shape guidance:
+// - scope contains validated segments before the first schema anchor label
+// - anchor is that first schema anchor-labeled segment and acts as the navigation anchor
+// - path contains validated descendant segments after the anchor

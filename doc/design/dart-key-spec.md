@@ -48,7 +48,7 @@ Repository target, library goal, and the narrow responsibilities of a key utilit
 | allow callers to combine validated labels and values back into stable key strings | rebuild canonical keys from split parts |
 | stop large validation runs on the first invalid key by default | support fail-fast batch validation |
 | optionally report all invalid keys for debugging without burdening the fast path | support diagnostic invalid collection |
-| provide root path terminal kind and hierarchy data derived from labels and segment position | expose derived fields |
+| provide anchor path terminal kind and hierarchy data derived from labels and segment position | expose derived fields |
 | support operations such as parent ancestor chain and root checks on strings and ParsedKey values | provide upward traversal helpers |
 | support descendant checks across candidate keys with optional depth limits on strings and ParsedKey values | provide downward relationship helpers |
 | keep persisted and compared key strings stable | serialize parsed keys back to canonical form |
@@ -73,9 +73,9 @@ Main capability areas and preferred API direction.
 | validation-mode | default batch validation to stop-first and make full invalid collection an explicit debugging mode |
 | security-model | treat raw keys and externally supplied schemas as untrusted until validated and fail closed on corruption |
 | parsed-key-operations | provide navigation helpers that operate directly on ParsedKey values |
-| navigation-helpers | expose helpers for parent root ancestor and hierarchy inspection |
+| navigation-helpers | expose helpers for parent anchor ancestor and hierarchy inspection |
 | relationship-helpers | include helpers such as isDescendantOf and descendant filtering across candidate keys |
-| collection-helpers | support utility operations over lists of keys including optional inclusion of the root key maximum depth and split batch processing |
+| collection-helpers | support utility operations over lists of keys including optional inclusion of the anchor key maximum depth and split batch processing |
 | error-model | prefer stable error types or explicit parse-result objects |
 | scope-control | avoid reproducing every possible future key grammar in parser code and let schema configuration carry grammar variation |
 | package-boundary | avoid combining key utilities with unrelated application infrastructure |
@@ -112,7 +112,7 @@ export type KeySchemaNode = {
 
 export type KeySchema = {
   config: KeySchemaConfig;
-  rootLabels: string[];
+  anchorLabels: string[];
   nodesByLabel: Record<string, KeySchemaNode>;
 };
 
@@ -125,7 +125,7 @@ export const exampleSchema: KeySchema = {
     allowDigits: true,
     extraIdChars: ['.', '_', '-'],
   },
-  rootLabels: ['dashboard', 'profile'],
+  anchorLabels: ['dashboard', 'profile'],
   nodesByLabel: {
     tenant: { label: 'tenant', valueTypes: ['id'], childLabels: ['group', 'team', 'region', 'dashboard', 'profile'] },
     group: { label: 'group', valueTypes: ['id'], childLabels: ['dashboard', 'profile'] },
@@ -154,7 +154,7 @@ export interface BeamingYggdrasilSchemaValidator {
 }
 
 export const schemaValidationChecks = [
-  'rootLabels must exist in nodesByLabel',
+  'anchorLabels must exist in nodesByLabel',
   'every child label must reference an existing node',
   'shared descendants are allowed, so the schema may be a DAG',
   'cycles must be reported as errors, including self-loops and longer loops',
@@ -164,10 +164,10 @@ export const schemaValidationChecks = [
 ];
 
 export const schemaValidationAlgorithms = [
-  'referential-integrity pass: verify every rootLabels entry and every childLabels entry points to a defined node',
-  'reachability pass: traverse from rootLabels and warn for any node never reached',
+  'referential-integrity pass: verify every anchorLabels entry and every childLabels entry points to a defined node',
+  'reachability pass: traverse from anchorLabels and warn for any node never reached',
   'cycle-detection pass: run DFS with visiting and visited states so DAG reuse is accepted but loops are rejected',
-  'shape-risk pass: emit warnings for unusual fan-out root count or reachable-node volume based on configured thresholds',
+  'shape-risk pass: emit warnings for unusual fan-out anchor count or reachable-node volume based on configured thresholds',
 ];
 
 export const exampleIssues: SchemaValidationIssue[] = [
@@ -186,7 +186,7 @@ export const exampleIssues: SchemaValidationIssue[] = [
   {
     severity: 'warning',
     code: 'schema.unreachable',
-    message: 'Node audit is not reachable from any configured root label',
+    message: 'Node audit is not reachable from any configured anchor label',
     label: 'audit',
   },
   {
@@ -212,9 +212,9 @@ export const exampleIssues: SchemaValidationIssue[] = [
 | schema-definition | normalized schema map keyed by label with child and value constraints plus schema config for depth and identifier validation | ad hoc grammar branches spread across parser implementation |
 | schema-validation | cycle checks broken child reference checks unreachable-node checks and risky-shape warnings | trusting unvalidated schema input in security-sensitive paths |
 | schema-safety | allow DAG-style schema reuse but reject loops and incompatible terminal-child declarations | treating every graph shape as equally safe |
-| derived-fields | root path scope hierarchy and terminal kind derived from labels and schema position | application-specific meaning inferred from key kinds |
-| navigation-helpers | parent root and ancestor helpers over one key string or ParsedKey | resource loading or tree persistence |
-| relationship-helpers | descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values | access policy evaluation |
+| derived-fields | anchor path scope hierarchy and terminal kind derived from labels and schema position | application-specific meaning inferred from key kinds |
+| navigation-helpers | parent anchor and ancestor helpers over one key string or ParsedKey | resource loading or tree persistence |
+| relationship-helpers | descendant checks descendant filtering canonical equality and same-anchor checks on strings or ParsedKey values | access policy evaluation |
 | validation | stable parse failures for malformed key strings including depth and identifier min max and character policy failures | UI form frameworks or remote validation protocols |
 | security | bounded validation and traversal rules for corrupted keys and untrusted schema input | turning the package into a general sandbox or policy engine |
 | serialization | canonical keyId round-trip helpers | local database sync engine |
@@ -229,7 +229,7 @@ export const exampleIssues: SchemaValidationIssue[] = [
 | return equal-length labels and values arrays for one key | 4 | split a key into schema and value arrays | lets algorithms work on labels and values separately without reparsing |
 | return parallel label and value arrays for each key in a batch | 5 | split a list of keys into schema and value arrays | lets batch algorithms reuse tokenized structure across many keys |
 | combine equal-length label and value arrays back into canonical keys | 6 | rebuild keys from split parts | lets callers transform or compare separated parts and then recover canonical strings |
-| provide parent and isRoot helpers for string inputs after schema validation | 7 | get the parent or root of a key string | lets app code navigate raw keys like paths |
+| provide parent and isRoot helpers for string inputs after schema validation | 7 | get the parent or anchor status of a key string | lets app code navigate raw keys like paths |
 | provide ParsedKey-based parent and ancestor helpers | 8 | get parent or ancestors from a parsed key | lets app code avoid re-parsing when a ParsedKey is already available |
 | provide descendant filtering with include-self and max-depth options for strings and ParsedKey values | 9 | check descendant relationships within a list of keys | lets app code find related keys without building custom traversal code |
 | accept a normalized schema map keyed by label with explicit config | 10 | configure grammar through schema data | lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites |
@@ -271,15 +271,15 @@ Key examples that should parse successfully.
 
 #### Key Acceptance Examples
 
-| expected_root | expected_terminal_kind | key_id | notes |
+| expected_anchor | expected_terminal_kind | key_id | notes |
 | --- | --- | --- | --- |
-| dashboard | dashboard | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07 | root key |
+| dashboard | dashboard | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07 | anchor key |
 | dashboard | text | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:text:_ | note text leaf with explicit intrinsic value |
 | dashboard | count | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:like:_:count:_ | derived count leaf with explicit intrinsic segments |
 | dashboard | thumbnail | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:thumbnail:_ | thumbnail intrinsic leaf |
 | dashboard | language | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:language:_ | language intrinsic leaf |
 | dashboard | user | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:~ | contextual self segment using reserved tilde |
-| profile | profile | department:d1:team:t1:profile:p1 | alternate supported scope and root labels |
+| profile | profile | department:d1:team:t1:profile:p1 | alternate supported scope and anchor labels |
 
 ### 03 Rejection Examples
 
@@ -291,7 +291,7 @@ Key examples that should fail deterministically.
 | --- | --- |
 | invalid key: empty key |  |
 | invalid key: incomplete key | tenant |
-| invalid key because root id is missing | tenant:t8f3a1c2:dashboard |
+| invalid key because anchor id is missing | tenant:t8f3a1c2:dashboard |
 | invalid key because every segment must include label and value | tenant:t8f3a1c2:group |
 | invalid key because intrinsic terminal segments must use explicit underscore value | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:text |
 | invalid key: unsupported label "missing" | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:missing:n1:text |
@@ -320,7 +320,7 @@ export type ParsedKey = {
   canonical: string;
   kindPath: string[];
   scope: Segment[];
-  root: Segment;
+  anchor: Segment;
   path: Segment[];
   terminalKind: string;
 };
@@ -362,7 +362,7 @@ export type KeySchemaNode = {
 
 export type KeySchema = {
   config: KeySchemaConfig;
-  rootLabels: string[];
+  anchorLabels: string[];
   nodesByLabel: Record<string, KeySchemaNode>;
 };
 
@@ -412,14 +412,14 @@ export type ParseFailure = {
 | derived_field | meaning | source |
 | --- | --- | --- |
 | canonical | the canonical keyId string representation using explicit label:value pairs | original validated token sequence after deterministic serialization |
-| scope | structured scope segments | leading id segments before root |
-| root | required structured root segment | first supported root label and id |
-| path | structured descendant segments after root | remaining validated labels and ids |
+| scope | structured scope segments | leading id segments before the anchor, all validated segments before the first schema anchor label |
+| anchor | required structured anchor segment | first supported anchor label and id that anchors navigation within the key |
+| path | structured descendant segments after the anchor | remaining validated labels and ids after the anchored segment |
 | parent_key | canonical key of the immediate parent when one exists | derived by removing the final effective segment from a parsed key |
-| ancestor_keys | ordered canonical keys from closest parent up to the root | derived by repeated parent traversal |
-| kind_path | label-only view of scope root and path | derived by reading each segment label in order after schema validation |
-| terminal_kind | the last effective kind for the key | derived from the label of the final validated path segment or from the root label when no path exists |
-| derived_kind_hierarchy | root plus path labels | derived from labels segment position and schema-validated path structure |
+| ancestor_keys | ordered canonical keys from closest parent up to the anchor | derived by repeated parent traversal |
+| kind_path | label-only view of scope anchor and path | derived by reading each segment label in order after schema validation |
+| terminal_kind | the last effective kind for the key | derived from the label of the final validated path segment or from the anchor label when no path exists |
+| derived_kind_hierarchy | anchor plus path labels | derived from labels segment position and schema-validated path structure |
 
 #### ParsedKey Examples
 
@@ -435,7 +435,7 @@ export const dashboardRootParsed: ParsedKey = {
     { label: 'tenant', value: 't8f3a1c2' },
     { label: 'group', value: 'g4b7d9e1' },
   ],
-  root: { label: 'dashboard', value: 'd1e52f07' },
+  anchor: { label: 'dashboard', value: 'd1e52f07' },
   path: [],
   terminalKind: 'dashboard',
 };
@@ -449,7 +449,7 @@ export const noteTextLeafParsed: ParsedKey = {
     { label: 'tenant', value: 't8f3a1c2' },
     { label: 'group', value: 'g4b7d9e1' },
   ],
-  root: { label: 'dashboard', value: 'd1e52f07' },
+  anchor: { label: 'dashboard', value: 'd1e52f07' },
   path: [
     { label: 'note', value: 'n7c401c2' },
     { label: 'text', value: '_' },
@@ -466,7 +466,7 @@ export const contextualUserParsed: ParsedKey = {
     { label: 'tenant', value: 't8f3a1c2' },
     { label: 'group', value: 'g4b7d9e1' },
   ],
-  root: { label: 'dashboard', value: 'd1e52f07' },
+  anchor: { label: 'dashboard', value: 'd1e52f07' },
   path: [
     { label: 'user', value: '~' },
   ],
@@ -482,10 +482,15 @@ export const profileRootParsed: ParsedKey = {
     { label: 'department', value: 'd1' },
     { label: 'team', value: 't1' },
   ],
-  root: { label: 'profile', value: 'p1' },
+  anchor: { label: 'profile', value: 'p1' },
   path: [],
   terminalKind: 'profile',
 };
+
+// ParsedKey shape guidance:
+// - scope contains validated segments before the first schema anchor label
+// - anchor is that first schema anchor-labeled segment and acts as the navigation anchor
+// - path contains validated descendant segments after the anchor
 ```
 
 ### 02 Parser API
@@ -530,6 +535,7 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - parsed-key helpers should work directly on ParsedKey values without forcing a string round trip
 // - canonical string form should always use explicit label:value pairs
 // - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
+// - ParsedKey should distinguish scope from anchor from path: scope is before the first schema anchor label, anchor is that first anchor-labeled segment, and path is everything after it
 // - structure validation should traverse the schema instead of hardcoding allowed label order in parser code
 // - schema config should define max depth in segment units plus id minimum length maximum length and explicit character policy
 // - repeatability should be derived from schema childLabels rather than a separate node flag

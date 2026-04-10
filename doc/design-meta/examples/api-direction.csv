@@ -11,9 +11,9 @@ split-combine-helpers,provide explicit helpers to split keys into label and valu
 validation-mode,default batch validation to stop-first and make full invalid collection an explicit debugging mode
 security-model,treat raw keys and externally supplied schemas as untrusted until validated and fail closed on corruption
 parsed-key-operations,provide navigation helpers that operate directly on ParsedKey values
-navigation-helpers,expose helpers for parent root ancestor and hierarchy inspection
+navigation-helpers,expose helpers for parent anchor ancestor and hierarchy inspection
 relationship-helpers,include helpers such as isDescendantOf and descendant filtering across candidate keys
-collection-helpers,support utility operations over lists of keys including optional inclusion of the root key maximum depth and split batch processing
+collection-helpers,support utility operations over lists of keys including optional inclusion of the anchor key maximum depth and split batch processing
 error-model,prefer stable error types or explicit parse-result objects
 scope-control,avoid reproducing every possible future key grammar in parser code and let schema configuration carry grammar variation
 package-boundary,avoid combining key utilities with unrelated application infrastructure

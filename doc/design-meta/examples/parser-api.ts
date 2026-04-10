@@ -33,6 +33,7 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - parsed-key helpers should work directly on ParsedKey values without forcing a string round trip
 // - canonical string form should always use explicit label:value pairs
 // - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
+// - ParsedKey should distinguish scope from anchor from path: scope is before the first schema anchor label, anchor is that first anchor-labeled segment, and path is everything after it
 // - structure validation should traverse the schema instead of hardcoding allowed label order in parser code
 // - schema config should define max depth in segment units plus id minimum length maximum length and explicit character policy
 // - repeatability should be derived from schema childLabels rather than a separate node flag

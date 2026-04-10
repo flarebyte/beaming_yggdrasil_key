@@ -5,7 +5,7 @@ export interface BeamingYggdrasilSchemaValidator {
 }
 
 export const schemaValidationChecks = [
-  'rootLabels must exist in nodesByLabel',
+  'anchorLabels must exist in nodesByLabel',
   'every child label must reference an existing node',
   'shared descendants are allowed, so the schema may be a DAG',
   'cycles must be reported as errors, including self-loops and longer loops',
@@ -15,10 +15,10 @@ export const schemaValidationChecks = [
 ];
 
 export const schemaValidationAlgorithms = [
-  'referential-integrity pass: verify every rootLabels entry and every childLabels entry points to a defined node',
-  'reachability pass: traverse from rootLabels and warn for any node never reached',
+  'referential-integrity pass: verify every anchorLabels entry and every childLabels entry points to a defined node',
+  'reachability pass: traverse from anchorLabels and warn for any node never reached',
   'cycle-detection pass: run DFS with visiting and visited states so DAG reuse is accepted but loops are rejected',
-  'shape-risk pass: emit warnings for unusual fan-out root count or reachable-node volume based on configured thresholds',
+  'shape-risk pass: emit warnings for unusual fan-out anchor count or reachable-node volume based on configured thresholds',
 ];
 
 export const exampleIssues: SchemaValidationIssue[] = [
@@ -37,7 +37,7 @@ export const exampleIssues: SchemaValidationIssue[] = [
   {
     severity: 'warning',
     code: 'schema.unreachable',
-    message: 'Node audit is not reachable from any configured root label',
+    message: 'Node audit is not reachable from any configured anchor label',
     label: 'audit',
   },
   {
