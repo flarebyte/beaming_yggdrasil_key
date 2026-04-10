@@ -60,7 +60,7 @@ export type SchemaValidationMode = 'strict' | 'tolerant';
 export interface SchemaValidationOptions {
   mode?: SchemaValidationMode;
   maxChildLabelsWarning?: number;
-  maxRootLabelsWarning?: number;
+  maxAnchorLabelsWarning?: number;
   maxReachableNodesWarning?: number;
 }
 

@@ -127,8 +127,11 @@ export const exampleSchema: KeySchema = {
   },
   anchorLabels: ['dashboard', 'profile'],
   nodesByLabel: {
-    tenant: { label: 'tenant', valueTypes: ['id'], childLabels: ['group', 'team', 'region', 'dashboard', 'profile'] },
+    tenant: { label: 'tenant', valueTypes: ['id'], childLabels: ['group', 'department', 'region', 'dashboard', 'profile'] },
     group: { label: 'group', valueTypes: ['id'], childLabels: ['dashboard', 'profile'] },
+    department: { label: 'department', valueTypes: ['id'], childLabels: ['team', 'profile'] },
+    team: { label: 'team', valueTypes: ['id'], childLabels: ['dashboard', 'profile'] },
+    region: { label: 'region', valueTypes: ['id'], childLabels: ['dashboard', 'profile'] },
     dashboard: { label: 'dashboard', valueTypes: ['id'], childLabels: ['note', 'language', 'thumbnail', 'like', 'user'] },
     note: { label: 'note', valueTypes: ['id'], childLabels: ['text', 'language', 'thumbnail', 'like'] },
     like: { label: 'like', valueTypes: ['_'], childLabels: ['count', 'user', 'member', 'subscriber'] },
@@ -136,7 +139,7 @@ export const exampleSchema: KeySchema = {
     count: { label: 'count', valueTypes: ['_'], childLabels: [], terminal: true },
     language: { label: 'language', valueTypes: ['_'], childLabels: [], terminal: true },
     thumbnail: { label: 'thumbnail', valueTypes: ['_'], childLabels: [], terminal: true },
-    user: { label: 'user', valueTypes: ['id', '~', '_'], childLabels: [] },
+    user: { label: 'user', valueTypes: ['~', '_'], childLabels: [] },
     member: { label: 'member', valueTypes: ['id', '_'], childLabels: [] },
     subscriber: { label: 'subscriber', valueTypes: ['id', '_'], childLabels: [] },
     profile: { label: 'profile', valueTypes: ['id'], childLabels: [] },
@@ -154,8 +157,12 @@ export interface BeamingYggdrasilSchemaValidator {
 }
 
 export const schemaValidationChecks = [
+  'anchorLabels should not be empty',
   'anchorLabels must exist in nodesByLabel',
+  'anchorLabels should not contain duplicates',
+  'each nodesByLabel key should match the node label field',
   'every child label must reference an existing node',
+  'childLabels should not contain duplicates within the same node',
   'shared descendants are allowed, so the schema may be a DAG',
   'cycles must be reported as errors, including self-loops and longer loops',
   'terminal nodes should not declare childLabels',
@@ -165,6 +172,8 @@ export const schemaValidationChecks = [
 
 export const schemaValidationAlgorithms = [
   'referential-integrity pass: verify every anchorLabels entry and every childLabels entry points to a defined node',
+  'node-identity pass: verify each nodesByLabel map key matches the embedded node label',
+  'duplicate-entry pass: detect repeated anchorLabels and repeated childLabels within a node before traversal begins',
   'reachability pass: traverse from anchorLabels and warn for any node never reached',
   'cycle-detection pass: run DFS with visiting and visited states so DAG reuse is accepted but loops are rejected',
   'shape-risk pass: emit warnings for unusual fan-out anchor count or reachable-node volume based on configured thresholds',
@@ -193,6 +202,18 @@ export const exampleIssues: SchemaValidationIssue[] = [
     severity: 'warning',
     code: 'schema.excessive_fan_out',
     message: 'Node dashboard declares 48 child labels which exceeds the warning threshold',
+    label: 'dashboard',
+  },
+  {
+    severity: 'error',
+    code: 'schema.duplicate_child',
+    message: 'Node dashboard declares child label note more than once',
+    label: 'dashboard',
+  },
+  {
+    severity: 'error',
+    code: 'schema.label_mismatch',
+    message: 'Schema entry keyed by dashboard embeds node label dashbord',
     label: 'dashboard',
   },
 ];
@@ -373,7 +394,7 @@ export type SchemaValidationMode = 'strict' | 'tolerant';
 export interface SchemaValidationOptions {
   mode?: SchemaValidationMode;
   maxChildLabelsWarning?: number;
-  maxRootLabelsWarning?: number;
+  maxAnchorLabelsWarning?: number;
   maxReachableNodesWarning?: number;
 }
 
@@ -545,6 +566,7 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - schema validation should detect cycles broken child references unreachable nodes and risky shapes before key parsing begins
 // - shared descendants are allowed so nodesByLabel may describe a DAG, but cycles must always be rejected
 // - schema validation options should tune warning thresholds without weakening structural error checks
+// - duplicate anchor labels or duplicate child labels should be rejected before any schema traversal begins
 // - treat raw keys as untrusted input until full validation succeeds and never expose derived navigation from partial parses
 // - prefer bounded iterative traversal over recursive parsing or recursive relationship walks on attacker-controlled input
 // - only cache validated results and keep caches bounded so hostile batches cannot cause unbounded memory growth

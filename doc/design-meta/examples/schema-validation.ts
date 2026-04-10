@@ -5,8 +5,12 @@ export interface BeamingYggdrasilSchemaValidator {
 }
 
 export const schemaValidationChecks = [
+  'anchorLabels should not be empty',
   'anchorLabels must exist in nodesByLabel',
+  'anchorLabels should not contain duplicates',
+  'each nodesByLabel key should match the node label field',
   'every child label must reference an existing node',
+  'childLabels should not contain duplicates within the same node',
   'shared descendants are allowed, so the schema may be a DAG',
   'cycles must be reported as errors, including self-loops and longer loops',
   'terminal nodes should not declare childLabels',
@@ -16,6 +20,8 @@ export const schemaValidationChecks = [
 
 export const schemaValidationAlgorithms = [
   'referential-integrity pass: verify every anchorLabels entry and every childLabels entry points to a defined node',
+  'node-identity pass: verify each nodesByLabel map key matches the embedded node label',
+  'duplicate-entry pass: detect repeated anchorLabels and repeated childLabels within a node before traversal begins',
   'reachability pass: traverse from anchorLabels and warn for any node never reached',
   'cycle-detection pass: run DFS with visiting and visited states so DAG reuse is accepted but loops are rejected',
   'shape-risk pass: emit warnings for unusual fan-out anchor count or reachable-node volume based on configured thresholds',
@@ -44,6 +50,18 @@ export const exampleIssues: SchemaValidationIssue[] = [
     severity: 'warning',
     code: 'schema.excessive_fan_out',
     message: 'Node dashboard declares 48 child labels which exceeds the warning threshold',
+    label: 'dashboard',
+  },
+  {
+    severity: 'error',
+    code: 'schema.duplicate_child',
+    message: 'Node dashboard declares child label note more than once',
+    label: 'dashboard',
+  },
+  {
+    severity: 'error',
+    code: 'schema.label_mismatch',
+    message: 'Schema entry keyed by dashboard embeds node label dashbord',
     label: 'dashboard',
   },
 ];

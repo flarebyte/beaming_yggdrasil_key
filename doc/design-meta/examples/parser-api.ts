@@ -43,6 +43,7 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - schema validation should detect cycles broken child references unreachable nodes and risky shapes before key parsing begins
 // - shared descendants are allowed so nodesByLabel may describe a DAG, but cycles must always be rejected
 // - schema validation options should tune warning thresholds without weakening structural error checks
+// - duplicate anchor labels or duplicate child labels should be rejected before any schema traversal begins
 // - treat raw keys as untrusted input until full validation succeeds and never expose derived navigation from partial parses
 // - prefer bounded iterative traversal over recursive parsing or recursive relationship walks on attacker-controlled input
 // - only cache validated results and keep caches bounded so hostile batches cannot cause unbounded memory growth
