@@ -49,7 +49,7 @@ Repository target, library goal, and the narrow responsibilities of a key utilit
 | stop large validation runs on the first invalid key by default | support fail-fast batch validation |
 | optionally report all invalid keys for debugging without burdening the fast path | support diagnostic invalid collection |
 | provide anchor path terminal kind and hierarchy data derived from labels and segment position | expose derived fields |
-| support operations such as parent ancestor chain and root checks on strings and ParsedKey values | provide upward traversal helpers |
+| support operations such as parent ancestor chain and anchor checks on strings and ParsedKey values | provide upward traversal helpers |
 | support descendant checks across candidate keys with optional depth limits on strings and ParsedKey values | provide downward relationship helpers |
 | keep persisted and compared key strings stable | serialize parsed keys back to canonical form |
 
@@ -250,7 +250,7 @@ export const exampleIssues: SchemaValidationIssue[] = [
 | return equal-length labels and values arrays for one key | 4 | split a key into schema and value arrays | lets algorithms work on labels and values separately without reparsing |
 | return parallel label and value arrays for each key in a batch | 5 | split a list of keys into schema and value arrays | lets batch algorithms reuse tokenized structure across many keys |
 | combine equal-length label and value arrays back into canonical keys | 6 | rebuild keys from split parts | lets callers transform or compare separated parts and then recover canonical strings |
-| provide parent and isRoot helpers for string inputs after schema validation | 7 | get the parent or anchor status of a key string | lets app code navigate raw keys like paths |
+| provide parent and isAnchor helpers for string inputs after schema validation | 7 | get the parent or anchor status of a key string | lets app code navigate raw keys like paths |
 | provide ParsedKey-based parent and ancestor helpers | 8 | get parent or ancestors from a parsed key | lets app code avoid re-parsing when a ParsedKey is already available |
 | provide descendant filtering with include-self and max-depth options for strings and ParsedKey values | 9 | check descendant relationships within a list of keys | lets app code find related keys without building custom traversal code |
 | accept a normalized schema map keyed by label with explicit config | 10 | configure grammar through schema data | lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites |
@@ -412,11 +412,11 @@ export interface SchemaValidationResult {
 }
 
 export interface ParsedKeyNavigator {
-  isRoot(parsed: ParsedKey): boolean;
+  isAnchor(parsed: ParsedKey): boolean;
   parentOf(parsed: ParsedKey): ParsedKey | null;
   ancestorsOf(parsed: ParsedKey): ParsedKey[];
-  isDescendantOf(root: ParsedKey, candidate: ParsedKey): boolean;
-  descendantsOf(root: ParsedKey, candidateKeys: ParsedKey[], query?: DescendantQuery): ParsedKey[];
+  isDescendantOf(anchor: ParsedKey, candidate: ParsedKey): boolean;
+  descendantsOf(anchor: ParsedKey, candidateKeys: ParsedKey[], query?: DescendantQuery): ParsedKey[];
 }
 
 export type DerivedKind = {
@@ -540,9 +540,9 @@ export interface BeamingYggdrasilKeyParser {
   combineKeys(labelsByKey: string[][], valuesByKey: string[][]): string[];
   parentOf(keyId: string): string | null;
   ancestorsOf(keyId: string): string[];
-  isRoot(keyId: string): boolean;
-  isDescendantOf(rootKeyId: string, candidateKeyId: string): boolean;
-  descendantsOf(rootKeyId: string, candidateKeyIds: string[], query?: DescendantQuery): string[];
+  isAnchor(keyId: string): boolean;
+  isDescendantOf(anchorKeyId: string, candidateKeyId: string): boolean;
+  descendantsOf(anchorKeyId: string, candidateKeyIds: string[], query?: DescendantQuery): string[];
   deriveKind(parsed: ParsedKey): DerivedKind;
   toCanonicalString(parsed: ParsedKey): string;
 }
@@ -636,10 +636,10 @@ export interface BeamingYggdrasilKeyPerformanceApi {
   withValidationMode(mode: ValidationMode): BeamingYggdrasilKeyPerformanceApi;
 
   // Scan a large list and return validated direct or nested children.
-  childrenOf(rootKeyId: string, candidateKeyIds: string[], query?: KeySetQuery): string[];
+  childrenOf(anchorKeyId: string, candidateKeyIds: string[], query?: KeySetQuery): string[];
 
   // Parsed-key variant to avoid reparsing when callers already hold validated keys.
-  childrenOfParsed(root: ParsedKey, candidateKeys: ParsedKey[], query?: KeySetQuery): ParsedKey[];
+  childrenOfParsed(anchor: ParsedKey, candidateKeys: ParsedKey[], query?: KeySetQuery): ParsedKey[];
 }
 
 // Performance guidance:
@@ -666,7 +666,7 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 | reuse cached schema traversal state for validated label prefixes | prefix-state-split-validator | cache invalidation and memory use add complexity | many split keys sharing long prefixes |
 | run cheap length and character checks before full schema traversal | two-phase-split-validator | duplicates part of the validation pipeline | large noisy batches of split keys |
 | precompute label ids child lookups and value rules to reduce repeated map and string work | compiled-schema-validator | adds setup cost and more internal machinery | large batches of keys |
-| reuse validated prefix states so related keys do not restart schema traversal from the root | prefix-cached-validator | cache management adds memory overhead | many keys sharing common prefixes |
+| reuse validated prefix states so related keys do not restart schema traversal from the anchor | prefix-cached-validator | cache management adds memory overhead | many keys sharing common prefixes |
 | run cheap structural checks before full schema traversal to reject bad keys early | two-phase-batch-validator | duplicates part of validation logic across phases | large noisy input sets |
 | compare validated segment prefixes instead of reparsing full candidates every time | prefix-scan-children | may still be linear without a dedicated index | find children or descendants by scanning many keys |
 | build an index keyed by canonical parent or validated prefix for faster repeated queries | indexed-children-lookup | index build and update cost may not pay off for small sets | repeated child retrieval over large stable sets |
@@ -678,10 +678,10 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 | same valid key repeated many times | compare single-key validator overhead | streaming path stays at least as fast as token-array for ordinary validation | micro-benchmark-single-key |
 | thousands to tens of thousands of valid unique keys | measure scaling on large distinct batches | compiled or split-based batch strategies reduce per-key overhead as batch size grows | batch-benchmark-unique-keys |
 | large batch with many identical keys | measure benefit of duplicate elimination | deduplicated-split strategy validates fewer unique items than input batch size and outperforms naive repeated validation | batch-benchmark-duplicate-keys |
-| many keys sharing long common prefixes | measure prefix reuse | prefix-cached and prefix-state-split strategies outperform restart-from-root validation | batch-benchmark-shared-prefixes |
+| many keys sharing long common prefixes | measure prefix reuse | prefix-cached and prefix-state-split strategies outperform restart-from-anchor validation | batch-benchmark-shared-prefixes |
 | batches with an invalid key early middle and late in the list | measure stop-first versus collect-invalids cost | stop-first exits earlier and allocates less than collect-invalids | mixed-validity-benchmark |
 | large batches of canonical keys | measure split and combine overhead | split helpers preserve equal label/value lengths and combine helpers round-trip back to canonical strings | split-helper-benchmark |
-| one root with thousands of candidate keys | compare child retrieval by scan | prefix-scan child lookup returns the same result set as a trusted baseline | children-scan-benchmark |
+| one anchor with thousands of candidate keys | compare child retrieval by scan | prefix-scan child lookup returns the same result set as a trusted baseline | children-scan-benchmark |
 | repeated child queries over a stable large key set | measure indexed child retrieval payoff | index build cost is visible but repeated lookups become faster than repeated scans after enough queries | children-index-benchmark |
 | stable representative datasets checked into test fixtures | catch accidental slowdowns | wall-clock or operation-count thresholds fail when a strategy regresses materially | regression-threshold-test |
 

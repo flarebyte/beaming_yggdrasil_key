@@ -17,9 +17,9 @@ export interface BeamingYggdrasilKeyParser {
   combineKeys(labelsByKey: string[][], valuesByKey: string[][]): string[];
   parentOf(keyId: string): string | null;
   ancestorsOf(keyId: string): string[];
-  isRoot(keyId: string): boolean;
-  isDescendantOf(rootKeyId: string, candidateKeyId: string): boolean;
-  descendantsOf(rootKeyId: string, candidateKeyIds: string[], query?: DescendantQuery): string[];
+  isAnchor(keyId: string): boolean;
+  isDescendantOf(anchorKeyId: string, candidateKeyId: string): boolean;
+  descendantsOf(anchorKeyId: string, candidateKeyIds: string[], query?: DescendantQuery): string[];
   deriveKind(parsed: ParsedKey): DerivedKind;
   toCanonicalString(parsed: ParsedKey): string;
 }

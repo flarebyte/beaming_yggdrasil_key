@@ -7,7 +7,7 @@ compiled-split-validator,large batches of pre-split keys,convert labels to compa
 prefix-state-split-validator,many split keys sharing long prefixes,reuse cached schema traversal state for validated label prefixes,cache invalidation and memory use add complexity
 two-phase-split-validator,large noisy batches of split keys,run cheap length and character checks before full schema traversal,duplicates part of the validation pipeline
 compiled-schema-validator,large batches of keys,precompute label ids child lookups and value rules to reduce repeated map and string work,adds setup cost and more internal machinery
-prefix-cached-validator,many keys sharing common prefixes,reuse validated prefix states so related keys do not restart schema traversal from the root,cache management adds memory overhead
+prefix-cached-validator,many keys sharing common prefixes,reuse validated prefix states so related keys do not restart schema traversal from the anchor,cache management adds memory overhead
 two-phase-batch-validator,large noisy input sets,run cheap structural checks before full schema traversal to reject bad keys early,duplicates part of validation logic across phases
 prefix-scan-children,find children or descendants by scanning many keys,compare validated segment prefixes instead of reparsing full candidates every time,may still be linear without a dedicated index
 indexed-children-lookup,repeated child retrieval over large stable sets,build an index keyed by canonical parent or validated prefix for faster repeated queries,index build and update cost may not pay off for small sets

@@ -6,6 +6,6 @@ rebuild canonical keys from split parts,allow callers to combine validated label
 support fail-fast batch validation,stop large validation runs on the first invalid key by default
 support diagnostic invalid collection,optionally report all invalid keys for debugging without burdening the fast path
 expose derived fields,provide anchor path terminal kind and hierarchy data derived from labels and segment position
-provide upward traversal helpers,support operations such as parent ancestor chain and root checks on strings and ParsedKey values
+provide upward traversal helpers,support operations such as parent ancestor chain and anchor checks on strings and ParsedKey values
 provide downward relationship helpers,support descendant checks across candidate keys with optional depth limits on strings and ParsedKey values
 serialize parsed keys back to canonical form,keep persisted and compared key strings stable

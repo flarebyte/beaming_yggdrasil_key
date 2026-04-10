@@ -5,7 +5,7 @@ priority,usecase,why_it_matters,minimum_library_support
 4,split a key into schema and value arrays,lets algorithms work on labels and values separately without reparsing,return equal-length labels and values arrays for one key
 5,split a list of keys into schema and value arrays,lets batch algorithms reuse tokenized structure across many keys,return parallel label and value arrays for each key in a batch
 6,rebuild keys from split parts,lets callers transform or compare separated parts and then recover canonical strings,combine equal-length label and value arrays back into canonical keys
-7,get the parent or anchor status of a key string,lets app code navigate raw keys like paths,provide parent and isRoot helpers for string inputs after schema validation
+7,get the parent or anchor status of a key string,lets app code navigate raw keys like paths,provide parent and isAnchor helpers for string inputs after schema validation
 8,get parent or ancestors from a parsed key,lets app code avoid re-parsing when a ParsedKey is already available,provide ParsedKey-based parent and ancestor helpers
 9,check descendant relationships within a list of keys,lets app code find related keys without building custom traversal code,provide descendant filtering with include-self and max-depth options for strings and ParsedKey values
 10,configure grammar through schema data,lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites,accept a normalized schema map keyed by label with explicit config

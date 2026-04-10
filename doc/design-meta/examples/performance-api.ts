@@ -55,10 +55,10 @@ export interface BeamingYggdrasilKeyPerformanceApi {
   withValidationMode(mode: ValidationMode): BeamingYggdrasilKeyPerformanceApi;
 
   // Scan a large list and return validated direct or nested children.
-  childrenOf(rootKeyId: string, candidateKeyIds: string[], query?: KeySetQuery): string[];
+  childrenOf(anchorKeyId: string, candidateKeyIds: string[], query?: KeySetQuery): string[];
 
   // Parsed-key variant to avoid reparsing when callers already hold validated keys.
-  childrenOfParsed(root: ParsedKey, candidateKeys: ParsedKey[], query?: KeySetQuery): ParsedKey[];
+  childrenOfParsed(anchor: ParsedKey, candidateKeys: ParsedKey[], query?: KeySetQuery): ParsedKey[];
 }
 
 // Performance guidance:
