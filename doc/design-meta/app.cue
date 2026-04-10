@@ -54,7 +54,7 @@ reports: [{
 		sections: [{
 			title:       "01 Derived Fields"
 			description: "Structured and derived values exposed by the parser."
-			notes: ["dart.key.derived-fields", "dart.key.common"]
+			notes: ["dart.key.derived-fields", "dart.key.common", "dart.key.parsed-key-examples"]
 		}, {
 			title:       "02 Parser API"
 			description: "API-shape examples for the Dart package."
@@ -173,6 +173,12 @@ notes: [
 		title: "Common Key Types"
 		filepath: "examples/common.ts"
 		labels: ["typescript", "types"]
+	},
+	{
+		name:  "dart.key.parsed-key-examples"
+		title: "ParsedKey Examples"
+		filepath: "examples/parsed-key-examples.ts"
+		labels: ["typescript", "example", "parsed-key"]
 	},
 	{
 		name:  "dart.key.parser-api"
