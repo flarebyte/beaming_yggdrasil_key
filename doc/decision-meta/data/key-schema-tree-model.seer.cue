@@ -4,18 +4,21 @@ config: {
 	problem: {
 		name:        "key-schema-tree-model"
 		title:       "Key Schema Tree Model"
-		goal:        "Choose a simple JSON-friendly and Dart-friendly tree model for representing key schema nodes."
-		description: "The model should represent a tree of nodes such as user or note. Each node should carry its entity kind and the type of value it stores such as UUID."
+		goal:        "Choose a simple JSON-friendly and Dart-friendly schema model for representing anchor labels and label-driven node definitions."
+		description: "The model should represent the schema used by the parser: anchor labels plus node definitions keyed by label, with value types, child labels, terminal behavior, and schema validation concerns."
 		notes: [
-			"Adjacency list shape: nodes[] with id and parentId on each node.",
-			"Normalized map shape: rootId plus nodesById keyed by node id, with childIds on each node.",
+			"Current parser design is schema-driven rather than hardcoded.",
+			"The schema is logically a DAG of allowed label transitions; cycles must still be rejected by schema validation.",
+			"Each node definition should stay JSON-friendly and Dart-friendly while supporting valueTypes, childLabels, and terminal behavior.",
+			"Adjacency list shape: nodes[] with label and parentLabel edges encoded across repeated records.",
+			"Normalized map shape: anchorLabels plus nodesByLabel keyed by label, with childLabels on each node.",
 		]
 	}
 	reports: [{
 		name:      "decision"
 		title:     "Key Schema Tree Model Decision"
 		format:    "markdown"
-		arguments: ["include-scenarios=all", "top-alternatives=2", "include-scores=true", "explain=false"]
+		arguments: ["include-scenarios=all", "top-alternatives=2", "include-scores=true", "explain=true"]
 	}]
 	criteriaCatalog: [
 		{
@@ -36,8 +39,8 @@ config: {
 		},
 		{
 			name:          "tree_explicitness"
-			title:         "Tree Explicitness"
-			description:   "The structure should make parent-child traversal and root ownership obvious."
+			title:         "Schema Explicitness"
+			description:   "The structure should make anchor labels, child rules, and label-level navigation obvious."
 			polarity:      "benefit"
 			valueType:     "ordinal"
 			scaleGuidance: [1, 2, 3, 4, 5]
@@ -53,7 +56,15 @@ config: {
 		{
 			name:          "metadata_extensibility"
 			title:         "Metadata Extensibility"
-			description:   "The node shape should comfortably hold entity names, value types such as UUID, and future schema metadata without awkward reshaping."
+			description:   "The node shape should comfortably hold valueTypes childLabels terminal behavior and future schema metadata without awkward reshaping."
+			polarity:      "benefit"
+			valueType:     "ordinal"
+			scaleGuidance: [1, 2, 3, 4, 5]
+		},
+		{
+			name:          "schema_validation_fit"
+			title:         "Schema Validation Fit"
+			description:   "The model should support anchor-label checks, duplicate detection, reachability checks, and loop rejection without extra translation layers."
 			polarity:      "benefit"
 			valueType:     "ordinal"
 			scaleGuidance: [1, 2, 3, 4, 5]
@@ -63,27 +74,28 @@ config: {
 		{
 			name:        "adjacency_list"
 			title:       "Adjacency List"
-			description: "Represent the tree as a flat array of nodes where each node stores id, parentId, entity, and valueType."
+			description: "Represent the schema as a flat array of records where parent-child edges and node definitions are spread across rows keyed by label."
 			labels:      ["json", "tree", "flat-list"]
 		},
 		{
 			name:        "normalized_map"
 			title:       "Normalized Map"
-			description: "Represent the tree as rootId plus nodesById, where each node stores entity, valueType, and childIds."
+			description: "Represent the schema as anchorLabels plus nodesByLabel, where each node stores valueTypes, childLabels, and terminal behavior."
 			labels:      ["json", "tree", "map"]
 		},
 	]
 	scenarios: [{
 		name:        "baseline"
 		title:       "Baseline Library Model"
-		description: "Default evaluation for a library model that should be easy to store in JSON and later model in Dart."
-		narrative:   "The preferred model should stay simple for small examples while remaining practical when the package needs direct node lookup, traversal, and extension of node metadata."
+		description: "Default evaluation for the current schema-driven library model, which should be easy to store in JSON and later model in Dart."
+		narrative:   "The preferred model should stay simple for small examples while remaining practical when the package needs direct label lookup, schema validation, and extension of node metadata."
 		activeCriteria: [
 			{criterionName: "json_simplicity"},
 			{criterionName: "dart_model_fit"},
 			{criterionName: "tree_explicitness"},
 			{criterionName: "lookup_and_updates"},
 			{criterionName: "metadata_extensibility"},
+			{criterionName: "schema_validation_fit"},
 		]
 		preferences: {
 			method: "ahp_pairwise"
@@ -99,7 +111,7 @@ config: {
 					moreImportantCriterionName: "json_simplicity"
 					lessImportantCriterionName: "tree_explicitness"
 					strength:                   2
-					justification:              "A compact and readable JSON shape matters slightly more than making traversal structure fully explicit."
+					justification:              "A compact and readable JSON shape matters slightly more than making schema traversal structure fully explicit."
 				},
 				{
 					moreImportantCriterionName: "lookup_and_updates"
@@ -129,7 +141,7 @@ config: {
 					moreImportantCriterionName: "metadata_extensibility"
 					lessImportantCriterionName: "tree_explicitness"
 					strength:                   3
-					justification:              "The node record needs to stay flexible as entity and value-type metadata grows."
+					justification:              "The node record needs to stay flexible as schema metadata grows."
 				},
 				{
 					moreImportantCriterionName: "dart_model_fit"
@@ -149,16 +161,46 @@ config: {
 					strength:                   2
 					justification:              "The model is for schema representation first, so node metadata needs outrank operational convenience."
 				},
+				{
+					moreImportantCriterionName: "schema_validation_fit"
+					lessImportantCriterionName: "json_simplicity"
+					strength:                   2
+					justification:              "The schema must support safe validation rules such as duplicate checks and loop rejection without awkward translation."
+				},
+				{
+					moreImportantCriterionName: "schema_validation_fit"
+					lessImportantCriterionName: "tree_explicitness"
+					strength:                   2
+					justification:              "Validation safety matters more than a purely descriptive shape."
+				},
+				{
+					moreImportantCriterionName: "schema_validation_fit"
+					lessImportantCriterionName: "lookup_and_updates"
+					strength:                   2
+					justification:              "The chosen model should make schema checks straightforward before any parser traversal begins."
+				},
+				{
+					moreImportantCriterionName: "schema_validation_fit"
+					lessImportantCriterionName: "dart_model_fit"
+					strength:                   2
+					justification:              "The schema is consumed through Dart, but safe and direct schema validation is slightly more important than the most natural Dart surface."
+				},
+				{
+					moreImportantCriterionName: "schema_validation_fit"
+					lessImportantCriterionName: "metadata_extensibility"
+					strength:                   2
+					justification:              "Extensible metadata matters, but the chosen schema model should first make validation safety direct and reliable."
+				},
 			]
 		}
 	}]
 	evaluations: [{
 		scenarioName: "baseline"
-		description:  "Comparison of the two candidate shapes for a JSON and Dart tree schema."
+		description:  "Comparison of the two candidate shapes for a JSON and Dart schema model."
 		evaluations: [
 			{
 				alternativeName: "adjacency_list"
-				description:     "Very compact JSON and easy to inspect, but tree traversal and node lookup usually require scanning or extra indexing."
+				description:     "Compact JSON and easy to inspect, but label lookup, child validation, and schema safety checks usually require scanning or extra indexing."
 				values: {
 					json_simplicity: {
 						kind:  "ordinal"
@@ -185,11 +227,16 @@ config: {
 						value: 4
 						label: "good"
 					}
+					schema_validation_fit: {
+						kind:  "ordinal"
+						value: 2
+						label: "weak"
+					}
 				}
 			},
 			{
 				alternativeName: "normalized_map"
-				description:     "Slightly more structured JSON, but clearer for direct node access, stable references, and future Dart helpers."
+				description:     "Slightly more structured JSON, but clearer for direct label access, anchor-label checks, stable references, and future Dart helpers."
 				values: {
 					json_simplicity: {
 						kind:  "ordinal"
@@ -212,6 +259,11 @@ config: {
 						label: "very good"
 					}
 					metadata_extensibility: {
+						kind:  "ordinal"
+						value: 5
+						label: "very good"
+					}
+					schema_validation_fit: {
 						kind:  "ordinal"
 						value: 5
 						label: "very good"
