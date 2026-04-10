@@ -5,7 +5,7 @@ config: {
 		name:        "key-schema-tree-model"
 		title:       "Key Schema Tree Model"
 		goal:        "Choose a simple JSON-friendly and Dart-friendly tree model for representing key schema nodes."
-		description: "The model should represent a tree of nodes such as user or note. Each node should carry its entity kind, the type of value it stores such as UUID, and a list of tags for later filtering, generation, or policy use."
+		description: "The model should represent a tree of nodes such as user or note. Each node should carry its entity kind and the type of value it stores such as UUID."
 		notes: [
 			"Adjacency list shape: nodes[] with id and parentId on each node.",
 			"Normalized map shape: rootId plus nodesById keyed by node id, with childIds on each node.",
@@ -53,7 +53,7 @@ config: {
 		{
 			name:          "metadata_extensibility"
 			title:         "Metadata Extensibility"
-			description:   "The node shape should comfortably hold entity names, value types such as UUID, and free-form tags."
+			description:   "The node shape should comfortably hold entity names, value types such as UUID, and future schema metadata without awkward reshaping."
 			polarity:      "benefit"
 			valueType:     "ordinal"
 			scaleGuidance: [1, 2, 3, 4, 5]
@@ -63,13 +63,13 @@ config: {
 		{
 			name:        "adjacency_list"
 			title:       "Adjacency List"
-			description: "Represent the tree as a flat array of nodes where each node stores id, parentId, entity, valueType, and tags."
+			description: "Represent the tree as a flat array of nodes where each node stores id, parentId, entity, and valueType."
 			labels:      ["json", "tree", "flat-list"]
 		},
 		{
 			name:        "normalized_map"
 			title:       "Normalized Map"
-			description: "Represent the tree as rootId plus nodesById, where each node stores entity, valueType, tags, and childIds."
+			description: "Represent the tree as rootId plus nodesById, where each node stores entity, valueType, and childIds."
 			labels:      ["json", "tree", "map"]
 		},
 	]
@@ -111,7 +111,7 @@ config: {
 					moreImportantCriterionName: "metadata_extensibility"
 					lessImportantCriterionName: "json_simplicity"
 					strength:                   2
-					justification:              "The model should leave room for tags and future node metadata without awkward reshaping."
+					justification:              "The model should leave room for future schema metadata without awkward reshaping."
 				},
 				{
 					moreImportantCriterionName: "dart_model_fit"
