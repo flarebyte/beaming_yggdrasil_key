@@ -1,0 +1,8 @@
+strategy,when_to_use,core_idea,tradeoff
+streaming-validator,default single-key validation,scan code units once and validate alternating label:value pairs while traversing schema,lowest abstraction and less reusable intermediate state
+token-array-validator,reference implementation and moderate workloads,split once and walk tokens two at a time for simple readable validation,more allocations than a streaming path
+compiled-schema-validator,large batches of keys,precompute label ids child lookups and value rules to reduce repeated map and string work,adds setup cost and more internal machinery
+prefix-cached-validator,many keys sharing common prefixes,reuse validated prefix states so related keys do not restart schema traversal from the root,cache management adds memory overhead
+two-phase-batch-validator,large noisy input sets,run cheap structural checks before full schema traversal to reject bad keys early,duplicates part of validation logic across phases
+prefix-scan-children,find children or descendants by scanning many keys,compare validated segment prefixes instead of reparsing full candidates every time,may still be linear without a dedicated index
+indexed-children-lookup,repeated child retrieval over large stable sets,build an index keyed by canonical parent or validated prefix for faster repeated queries,index build and update cost may not pay off for small sets

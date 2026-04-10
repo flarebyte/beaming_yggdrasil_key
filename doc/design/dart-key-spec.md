@@ -348,3 +348,64 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - Dart identifier checks can use direct code-unit comparisons and a small extra-character whitelist instead of regex
 ```
 
+### 03 Performance API
+
+Validation and scanning strategies for large key sets.
+
+#### Performance API Example Shapes
+
+```ts
+import type { KeySchema, ParsedKey } from './common';
+
+export interface ValidationStrategy {
+  name: string;
+  validate(keyId: string): boolean;
+}
+
+export interface BatchValidationResult {
+  valid: string[];
+  invalid: Array<{ keyId: string; message: string }>;
+}
+
+export interface KeySetQuery {
+  includeSelf?: boolean;
+  maxDepth?: number;
+}
+
+export interface BeamingYggdrasilKeyPerformanceApi {
+  schema: KeySchema;
+
+  // Default single-key fast path using the current preferred strategy.
+  validateFast(keyId: string): boolean;
+
+  // Validate many keys without forcing the same algorithm for all workloads.
+  validateBatch(keyIds: string[]): BatchValidationResult;
+
+  // Allow the implementation to swap strategies as dataset size changes.
+  withValidationStrategy(name: 'streaming' | 'token-array' | 'compiled-schema' | 'prefix-cached' | 'two-phase-batch'): BeamingYggdrasilKeyPerformanceApi;
+
+  // Scan a large list and return validated direct or nested children.
+  childrenOf(rootKeyId: string, candidateKeyIds: string[], query?: KeySetQuery): string[];
+
+  // Parsed-key variant to avoid reparsing when callers already hold validated keys.
+  childrenOfParsed(root: ParsedKey, candidateKeys: ParsedKey[], query?: KeySetQuery): ParsedKey[];
+}
+
+// Performance guidance:
+// - keep label:value and even-token constraints because they enable cheap structural checks
+// - avoid one function that reparses, revalidates, and rescans everything for every workload
+// - pick validation and scan strategy based on key count and prefix sharing, not by one fixed algorithm
+```
+
+#### Validation Strategies
+
+| core_idea | strategy | tradeoff | when_to_use |
+| --- | --- | --- | --- |
+| scan code units once and validate alternating label:value pairs while traversing schema | streaming-validator | lowest abstraction and less reusable intermediate state | default single-key validation |
+| split once and walk tokens two at a time for simple readable validation | token-array-validator | more allocations than a streaming path | reference implementation and moderate workloads |
+| precompute label ids child lookups and value rules to reduce repeated map and string work | compiled-schema-validator | adds setup cost and more internal machinery | large batches of keys |
+| reuse validated prefix states so related keys do not restart schema traversal from the root | prefix-cached-validator | cache management adds memory overhead | many keys sharing common prefixes |
+| run cheap structural checks before full schema traversal to reject bad keys early | two-phase-batch-validator | duplicates part of validation logic across phases | large noisy input sets |
+| compare validated segment prefixes instead of reparsing full candidates every time | prefix-scan-children | may still be linear without a dedicated index | find children or descendants by scanning many keys |
+| build an index keyed by canonical parent or validated prefix for faster repeated queries | indexed-children-lookup | index build and update cost may not pay off for small sets | repeated child retrieval over large stable sets |
+

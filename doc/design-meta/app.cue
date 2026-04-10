@@ -58,6 +58,10 @@ reports: [{
 			title:       "02 Parser API"
 			description: "API-shape examples for the Dart package."
 			notes: ["dart.key.parser-api"]
+		}, {
+			title:       "03 Performance API"
+			description: "Validation and scanning strategies for large key sets."
+			notes: ["dart.key.performance-strategies", "dart.key.performance-api"]
 		}]
 	}]
 }]
@@ -164,6 +168,19 @@ notes: [
 		title: "Parser API Example Shapes"
 		filepath: "examples/parser-api.ts"
 		labels: ["typescript", "api"]
+	},
+	{
+		name:  "dart.key.performance-strategies"
+		title: "Validation Strategies"
+		filepath: "examples/performance-strategies.csv"
+		arguments: ["format-csv=table"]
+		labels: ["performance", "csv"]
+	},
+	{
+		name:  "dart.key.performance-api"
+		title: "Performance API Example Shapes"
+		filepath: "examples/performance-api.ts"
+		labels: ["typescript", "api", "performance"]
 	},
 ]
 
