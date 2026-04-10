@@ -168,6 +168,15 @@ export const exampleSchema: KeySchema = {
 };
 ```
 
+#### Schema Model Decision Summary
+
+| alternative | rank | scenario | score |
+| --- | --- | --- | --- |
+| normalized_map | 1 | baseline | 0.907606 |
+| adjacency_list | 2 | baseline | 0.092394 |
+| normalized_map | 1 | overall | 0.907606 |
+| adjacency_list | 2 | overall | 0.092394 |
+
 #### Schema Validation
 
 ```ts

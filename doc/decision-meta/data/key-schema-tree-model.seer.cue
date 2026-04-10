@@ -15,10 +15,10 @@ config: {
 		]
 	}
 	reports: [{
-		name:      "decision"
-		title:     "Key Schema Tree Model Decision"
-		format:    "markdown"
-		arguments: ["include-scenarios=all", "top-alternatives=2", "include-scores=true", "explain=true"]
+		name:      "decision-csv"
+		title:     "Key Schema Tree Model Decision CSV"
+		format:    "csv"
+		arguments: ["columns=scenario,alternative,score,rank", "header=true"]
 	}]
 	criteriaCatalog: [
 		{

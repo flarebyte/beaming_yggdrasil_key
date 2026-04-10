@@ -27,6 +27,7 @@ reports: [{
 			notes: [
 				"dart.key.scope",
 				"dart.key.schema-model",
+				"dart.key.schema-model-decision",
 				"dart.key.schema-validation",
 				"dart.key.package-boundary",
 				"dart.key.api-direction",
@@ -127,6 +128,13 @@ notes: [
 		title: "Schema Model"
 		filepath: "examples/schema-model.ts"
 		labels: ["typescript", "schema"]
+	},
+	{
+		name:  "dart.key.schema-model-decision"
+		title: "Schema Model Decision Summary"
+		filepath: "examples/key-schema-tree-model-decision.csv"
+		arguments: ["format-csv=table"]
+		labels: ["decision", "csv"]
 	},
 	{
 		name:  "dart.key.schema-validation"
