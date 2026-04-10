@@ -20,6 +20,27 @@ Repository target, library goal, and the narrow responsibilities of a key utilit
 | structured-data | domain-specific business rules unrelated to keys | structured key segments |
 | serialization | storage engines or sync logic | canonical serialization helpers |
 
+#### Glossary
+
+| meaning | term |
+| --- | --- |
+| canonical string representation of a key using explicit label:value pairs | keyId |
+| one atomic label:value pair inside a key | segment |
+| the schema-side name of a segment such as tenant dashboard note or user | label |
+| the value-side content of a segment which is either an opaque id or a reserved sentinel | value |
+| a special non-id segment value such as underscore for intrinsic or tilde for contextual self | reserved value |
+| the declarative grammar definition used by the parser instead of hardcoded path rules | schema |
+| the normalized schema map keyed by label that stores node definitions | nodesByLabel |
+| a label listed in schema anchorLabels that may act as the parsed anchor of a key | anchor label |
+| the first segment in a validated key whose label is in schema anchorLabels and which anchors navigation | anchor |
+| validated segments before the anchor | scope |
+| validated segments after the anchor | path |
+| serialization of a validated key back into its stable explicit label:value form | canonicalization |
+| the structured representation of a validated key with canonical kindPath scope anchor path and terminalKind | parsed key |
+| a representation of a key as parallel labels and values arrays of equal length | split key |
+| batch validation behavior such as stop-first or collect-invalids | validation mode |
+| validation of the schema itself for referential integrity duplicates reachability cycles and risky shapes | schema validation |
+
 #### Library Goals
 
 | goal | why_it_matters |

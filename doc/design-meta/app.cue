@@ -15,6 +15,7 @@ reports: [{
 			title:       "01 Purpose and Scope"
 			description: "Repository target, library goal, and the narrow responsibilities of a key utility package."
 			notes: [
+				"dart.key.glossary",
 				"dart.key.goals",
 				"dart.key.design-ownership",
 				"dart.key.responsibilities",
@@ -72,6 +73,13 @@ reports: [{
 }]
 
 notes: [
+	{
+		name:  "dart.key.glossary"
+		title: "Glossary"
+		filepath: "examples/glossary.csv"
+		arguments: ["format-csv=table"]
+		labels: ["glossary", "csv"]
+	},
 	{
 		name:  "dart.key.goals"
 		title: "Library Goals"
