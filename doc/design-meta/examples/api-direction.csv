@@ -5,10 +5,11 @@ schema-input,accept a schema that defines allowed labels value types child label
 schema-config,keep max depth min and max id length plus explicit id character policy in schema config rather than parser constants
 repetition-model,derive repeatability from whether a label appears in its own childLabels set instead of storing a separate flag
 parsing-entrypoints,provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic
+split-combine-helpers,provide explicit helpers to split keys into label and value arrays and combine them back for single keys and batches
 parsed-key-operations,provide navigation helpers that operate directly on ParsedKey values
 navigation-helpers,expose helpers for parent root ancestor and hierarchy inspection
 relationship-helpers,include helpers such as isDescendantOf and descendant filtering across candidate keys
-collection-helpers,support utility operations over lists of keys including optional inclusion of the root key and maximum depth
+collection-helpers,support utility operations over lists of keys including optional inclusion of the root key maximum depth and split batch processing
 error-model,prefer stable error types or explicit parse-result objects
 scope-control,avoid reproducing every possible future key grammar in parser code and let schema configuration carry grammar variation
 package-boundary,avoid combining key utilities with unrelated application infrastructure

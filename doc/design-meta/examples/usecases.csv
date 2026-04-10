@@ -1,8 +1,11 @@
 priority,usecase,why_it_matters,minimum_library_support
 1,parse supported keyIds with a schema,lets Dart code validate grammar without hardcoding path rules,parse into structured segments while traversing schema node definitions
-2,get the parent or root of a key string,lets app code navigate raw keys like paths,provide parent and isRoot helpers for string inputs after schema validation
-3,get parent or ancestors from a parsed key,lets app code avoid re-parsing when a ParsedKey is already available,provide ParsedKey-based parent and ancestor helpers
-4,check descendant relationships within a list of keys,lets app code find related keys without building custom traversal code,provide descendant filtering with include-self and max-depth options for strings and ParsedKey values
-5,configure grammar through schema data,lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites,accept a normalized schema map keyed by label with explicit config
-6,enforce bounded depth and identifier constraints,lets applications reject pathological or malformed keys consistently,validate max depth in segment units plus id min length max length and explicit character policy from schema config
-7,keep canonical string form,lets app code compare and persist keys consistently,serialize parsed key back to canonical keyId
+2,split a key into schema and value arrays,lets algorithms work on labels and values separately without reparsing,return equal-length labels and values arrays for one key
+3,split a list of keys into schema and value arrays,lets batch algorithms reuse tokenized structure across many keys,return parallel label and value arrays for each key in a batch
+4,rebuild keys from split parts,lets callers transform or compare separated parts and then recover canonical strings,combine equal-length label and value arrays back into canonical keys
+5,get the parent or root of a key string,lets app code navigate raw keys like paths,provide parent and isRoot helpers for string inputs after schema validation
+6,get parent or ancestors from a parsed key,lets app code avoid re-parsing when a ParsedKey is already available,provide ParsedKey-based parent and ancestor helpers
+7,check descendant relationships within a list of keys,lets app code find related keys without building custom traversal code,provide descendant filtering with include-self and max-depth options for strings and ParsedKey values
+8,configure grammar through schema data,lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites,accept a normalized schema map keyed by label with explicit config
+9,enforce bounded depth and identifier constraints,lets applications reject pathological or malformed keys consistently,validate max depth in segment units plus id min length max length and explicit character policy from schema config
+10,keep canonical string form,lets app code compare and persist keys consistently,serialize parsed key back to canonical keyId

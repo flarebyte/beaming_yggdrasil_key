@@ -1,4 +1,4 @@
-import type { KeySchema, ParsedKey } from './common';
+import type { KeySchema, ParsedKey, SplitKey, SplitKeyBatch } from './common';
 
 export interface ValidationStrategy {
   name: string;
@@ -24,6 +24,14 @@ export interface BeamingYggdrasilKeyPerformanceApi {
   // Validate many keys without forcing the same algorithm for all workloads.
   validateBatch(keyIds: string[]): BatchValidationResult;
 
+  // Split validated or candidate keys into parallel label and value arrays for algorithmic reuse.
+  splitKeyFast(keyId: string): SplitKey;
+  splitKeysFast(keyIds: string[]): SplitKeyBatch;
+
+  // Rebuild canonical keys from already separated schema/value parts.
+  combineKeyFast(labels: string[], values: string[]): string;
+  combineKeysFast(labelsByKey: string[][], valuesByKey: string[][]): string[];
+
   // Allow the implementation to swap strategies as dataset size changes.
   withValidationStrategy(name: 'streaming' | 'token-array' | 'compiled-schema' | 'prefix-cached' | 'two-phase-batch'): BeamingYggdrasilKeyPerformanceApi;
 
@@ -38,3 +46,4 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 // - keep label:value and even-token constraints because they enable cheap structural checks
 // - avoid one function that reparses, revalidates, and rescans everything for every workload
 // - pick validation and scan strategy based on key count and prefix sharing, not by one fixed algorithm
+// - split label/value arrays can support additional algorithms without forcing full ParsedKey construction

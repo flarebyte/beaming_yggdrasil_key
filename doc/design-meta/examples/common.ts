@@ -13,6 +13,16 @@ export type ParsedKey = {
   terminalKind: string;
 };
 
+export type SplitKey = {
+  labels: string[];
+  values: string[];
+};
+
+export type SplitKeyBatch = {
+  labelsByKey: string[][];
+  valuesByKey: string[][];
+};
+
 export type DescendantQuery = {
   includeSelf?: boolean;
   maxDepth?: number;

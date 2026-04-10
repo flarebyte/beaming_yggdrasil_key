@@ -1,4 +1,4 @@
-import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator } from './common';
+import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SplitKey, SplitKeyBatch } from './common';
 
 export type ParseResult =
   | { ok: true; value: ParsedKey }
@@ -9,6 +9,10 @@ export interface BeamingYggdrasilKeyParser {
   parse(keyId: string): ParseResult;
   mustParse(keyId: string): ParsedKey;
   isValid(keyId: string): boolean;
+  splitKey(keyId: string): SplitKey;
+  splitKeys(keyIds: string[]): SplitKeyBatch;
+  combineKey(labels: string[], values: string[]): string;
+  combineKeys(labelsByKey: string[][], valuesByKey: string[][]): string[];
   parentOf(keyId: string): string | null;
   ancestorsOf(keyId: string): string[];
   isRoot(keyId: string): boolean;
@@ -31,3 +35,4 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - schema config should define max depth in segment units plus id minimum length maximum length and explicit character policy
 // - repeatability should be derived from schema childLabels rather than a separate node flag
 // - Dart identifier checks can use direct code-unit comparisons and a small extra-character whitelist instead of regex
+// - split/combine helpers should expose labels and values as parallel arrays of equal size for single keys and batches

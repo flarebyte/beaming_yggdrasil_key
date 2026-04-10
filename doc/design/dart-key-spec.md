@@ -44,6 +44,8 @@ Repository target, library goal, and the narrow responsibilities of a key utilit
 | --- | --- |
 | produce structured Dart values from supported keys | parse supported keyId strings |
 | return stable validation failures for tests and diagnostics | reject malformed or unsupported key shapes |
+| provide equal-length schema-side and value-side arrays for algorithms and transformations | split canonical keys into label and value parts |
+| allow callers to combine validated labels and values back into stable key strings | rebuild canonical keys from split parts |
 | provide root path terminal kind and hierarchy data derived from labels and segment position | expose derived fields |
 | support operations such as parent ancestor chain and root checks on strings and ParsedKey values | provide upward traversal helpers |
 | support descendant checks across candidate keys with optional depth limits on strings and ParsedKey values | provide downward relationship helpers |
@@ -63,10 +65,11 @@ Main capability areas and preferred API direction.
 | schema-config | keep max depth min and max id length plus explicit id character policy in schema config rather than parser constants |
 | repetition-model | derive repeatability from whether a label appears in its own childLabels set instead of storing a separate flag |
 | parsing-entrypoints | provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic |
+| split-combine-helpers | provide explicit helpers to split keys into label and value arrays and combine them back for single keys and batches |
 | parsed-key-operations | provide navigation helpers that operate directly on ParsedKey values |
 | navigation-helpers | expose helpers for parent root ancestor and hierarchy inspection |
 | relationship-helpers | include helpers such as isDescendantOf and descendant filtering across candidate keys |
-| collection-helpers | support utility operations over lists of keys including optional inclusion of the root key and maximum depth |
+| collection-helpers | support utility operations over lists of keys including optional inclusion of the root key maximum depth and split batch processing |
 | error-model | prefer stable error types or explicit parse-result objects |
 | scope-control | avoid reproducing every possible future key grammar in parser code and let schema configuration carry grammar variation |
 | package-boundary | avoid combining key utilities with unrelated application infrastructure |
@@ -152,12 +155,15 @@ export const exampleSchema: KeySchema = {
 | minimum_library_support | priority | usecase | why_it_matters |
 | --- | --- | --- | --- |
 | parse into structured segments while traversing schema node definitions | 1 | parse supported keyIds with a schema | lets Dart code validate grammar without hardcoding path rules |
-| provide parent and isRoot helpers for string inputs after schema validation | 2 | get the parent or root of a key string | lets app code navigate raw keys like paths |
-| provide ParsedKey-based parent and ancestor helpers | 3 | get parent or ancestors from a parsed key | lets app code avoid re-parsing when a ParsedKey is already available |
-| provide descendant filtering with include-self and max-depth options for strings and ParsedKey values | 4 | check descendant relationships within a list of keys | lets app code find related keys without building custom traversal code |
-| accept a normalized schema map keyed by label with explicit config | 5 | configure grammar through schema data | lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites |
-| validate max depth in segment units plus id min length max length and explicit character policy from schema config | 6 | enforce bounded depth and identifier constraints | lets applications reject pathological or malformed keys consistently |
-| serialize parsed key back to canonical keyId | 7 | keep canonical string form | lets app code compare and persist keys consistently |
+| return equal-length labels and values arrays for one key | 2 | split a key into schema and value arrays | lets algorithms work on labels and values separately without reparsing |
+| return parallel label and value arrays for each key in a batch | 3 | split a list of keys into schema and value arrays | lets batch algorithms reuse tokenized structure across many keys |
+| combine equal-length label and value arrays back into canonical keys | 4 | rebuild keys from split parts | lets callers transform or compare separated parts and then recover canonical strings |
+| provide parent and isRoot helpers for string inputs after schema validation | 5 | get the parent or root of a key string | lets app code navigate raw keys like paths |
+| provide ParsedKey-based parent and ancestor helpers | 6 | get parent or ancestors from a parsed key | lets app code avoid re-parsing when a ParsedKey is already available |
+| provide descendant filtering with include-self and max-depth options for strings and ParsedKey values | 7 | check descendant relationships within a list of keys | lets app code find related keys without building custom traversal code |
+| accept a normalized schema map keyed by label with explicit config | 8 | configure grammar through schema data | lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites |
+| validate max depth in segment units plus id min length max length and explicit character policy from schema config | 9 | enforce bounded depth and identifier constraints | lets applications reject pathological or malformed keys consistently |
+| serialize parsed key back to canonical keyId | 10 | keep canonical string form | lets app code compare and persist keys consistently |
 
 ## 02 Parsing Contract
 
@@ -245,6 +251,16 @@ export type ParsedKey = {
   terminalKind: string;
 };
 
+export type SplitKey = {
+  labels: string[];
+  values: string[];
+};
+
+export type SplitKeyBatch = {
+  labelsByKey: string[][];
+  valuesByKey: string[][];
+};
+
 export type DescendantQuery = {
   includeSelf?: boolean;
   maxDepth?: number;
@@ -313,7 +329,7 @@ API-shape examples for the Dart package.
 #### Parser API Example Shapes
 
 ```ts
-import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator } from './common';
+import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SplitKey, SplitKeyBatch } from './common';
 
 export type ParseResult =
   | { ok: true; value: ParsedKey }
@@ -324,6 +340,10 @@ export interface BeamingYggdrasilKeyParser {
   parse(keyId: string): ParseResult;
   mustParse(keyId: string): ParsedKey;
   isValid(keyId: string): boolean;
+  splitKey(keyId: string): SplitKey;
+  splitKeys(keyIds: string[]): SplitKeyBatch;
+  combineKey(labels: string[], values: string[]): string;
+  combineKeys(labelsByKey: string[][], valuesByKey: string[][]): string[];
   parentOf(keyId: string): string | null;
   ancestorsOf(keyId: string): string[];
   isRoot(keyId: string): boolean;
@@ -346,6 +366,7 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - schema config should define max depth in segment units plus id minimum length maximum length and explicit character policy
 // - repeatability should be derived from schema childLabels rather than a separate node flag
 // - Dart identifier checks can use direct code-unit comparisons and a small extra-character whitelist instead of regex
+// - split/combine helpers should expose labels and values as parallel arrays of equal size for single keys and batches
 ```
 
 ### 03 Performance API
@@ -355,7 +376,7 @@ Validation and scanning strategies for large key sets.
 #### Performance API Example Shapes
 
 ```ts
-import type { KeySchema, ParsedKey } from './common';
+import type { KeySchema, ParsedKey, SplitKey, SplitKeyBatch } from './common';
 
 export interface ValidationStrategy {
   name: string;
@@ -381,6 +402,14 @@ export interface BeamingYggdrasilKeyPerformanceApi {
   // Validate many keys without forcing the same algorithm for all workloads.
   validateBatch(keyIds: string[]): BatchValidationResult;
 
+  // Split validated or candidate keys into parallel label and value arrays for algorithmic reuse.
+  splitKeyFast(keyId: string): SplitKey;
+  splitKeysFast(keyIds: string[]): SplitKeyBatch;
+
+  // Rebuild canonical keys from already separated schema/value parts.
+  combineKeyFast(labels: string[], values: string[]): string;
+  combineKeysFast(labelsByKey: string[][], valuesByKey: string[][]): string[];
+
   // Allow the implementation to swap strategies as dataset size changes.
   withValidationStrategy(name: 'streaming' | 'token-array' | 'compiled-schema' | 'prefix-cached' | 'two-phase-batch'): BeamingYggdrasilKeyPerformanceApi;
 
@@ -395,6 +424,7 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 // - keep label:value and even-token constraints because they enable cheap structural checks
 // - avoid one function that reparses, revalidates, and rescans everything for every workload
 // - pick validation and scan strategy based on key count and prefix sharing, not by one fixed algorithm
+// - split label/value arrays can support additional algorithms without forcing full ParsedKey construction
 ```
 
 #### Validation Strategies
