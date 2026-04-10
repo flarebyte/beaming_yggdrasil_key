@@ -71,6 +71,7 @@ Main capability areas and preferred API direction.
 | parsing-entrypoints | provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic |
 | split-combine-helpers | provide explicit helpers to split keys into label and value arrays and combine them back for single keys and batches |
 | validation-mode | default batch validation to stop-first and make full invalid collection an explicit debugging mode |
+| security-model | treat raw keys and externally supplied schemas as untrusted until validated and fail closed on corruption |
 | parsed-key-operations | provide navigation helpers that operate directly on ParsedKey values |
 | navigation-helpers | expose helpers for parent root ancestor and hierarchy inspection |
 | relationship-helpers | include helpers such as isDescendantOf and descendant filtering across candidate keys |
@@ -215,6 +216,7 @@ export const exampleIssues: SchemaValidationIssue[] = [
 | navigation-helpers | parent root and ancestor helpers over one key string or ParsedKey | resource loading or tree persistence |
 | relationship-helpers | descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values | access policy evaluation |
 | validation | stable parse failures for malformed key strings including depth and identifier min max and character policy failures | UI form frameworks or remote validation protocols |
+| security | bounded validation and traversal rules for corrupted keys and untrusted schema input | turning the package into a general sandbox or policy engine |
 | serialization | canonical keyId round-trip helpers | local database sync engine |
 
 #### Use Cases
@@ -234,7 +236,8 @@ export const exampleIssues: SchemaValidationIssue[] = [
 | validate max depth in segment units plus id min length max length and explicit character policy from schema config | 11 | enforce bounded depth and identifier constraints | lets applications reject pathological or malformed keys consistently |
 | provide stop-first as the default validation mode | 12 | stop batch validation on first failure by default | lets large validation runs abort quickly when the input set is already known to be bad |
 | provide an explicit collect-invalids mode without changing the fast default | 13 | collect all invalid keys when debugging | lets developers inspect the full set of failures when needed |
-| serialize parsed key back to canonical keyId | 14 | keep canonical string form | lets app code compare and persist keys consistently |
+| avoid partial parse helpers and use bounded validation and traversal | 14 | fail safely on corrupted keys | lets applications reject corrupted or attacker-shaped input without poisoning derived results |
+| serialize parsed key back to canonical keyId | 15 | keep canonical string form | lets app code compare and persist keys consistently |
 
 ## 02 Parsing Contract
 
@@ -471,6 +474,9 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - schema validation should detect cycles broken child references unreachable nodes and risky shapes before key parsing begins
 // - shared descendants are allowed so nodesByLabel may describe a DAG, but cycles must always be rejected
 // - schema validation options should tune warning thresholds without weakening structural error checks
+// - treat raw keys as untrusted input until full validation succeeds and never expose derived navigation from partial parses
+// - prefer bounded iterative traversal over recursive parsing or recursive relationship walks on attacker-controlled input
+// - only cache validated results and keep caches bounded so hostile batches cannot cause unbounded memory growth
 ```
 
 ### 03 Performance API
@@ -585,4 +591,25 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 | one root with thousands of candidate keys | compare child retrieval by scan | prefix-scan child lookup returns the same result set as a trusted baseline | children-scan-benchmark |
 | repeated child queries over a stable large key set | measure indexed child retrieval payoff | index build cost is visible but repeated lookups become faster than repeated scans after enough queries | children-index-benchmark |
 | stable representative datasets checked into test fixtures | catch accidental slowdowns | wall-clock or operation-count thresholds fail when a strategy regresses materially | regression-threshold-test |
+
+### 04 Security
+
+Implementation guidance for corrupted keys and untrusted schema inputs.
+
+#### Security Guidance
+
+| concern | recommendation | why_it_matters |
+| --- | --- | --- |
+| untrusted-key-input | treat every incoming key string as untrusted until it passes full validation | corrupted keys should not be allowed to influence navigation or derived results |
+| partial-parse-use | do not expose parent ancestor descendant or kind helpers on partially validated data | partial success can leak inconsistent state into higher-level logic |
+| structural-bounds | reject odd token counts empty segments and depth overflows before any deeper traversal | cheap structural guards prevent malformed inputs from triggering unnecessary work |
+| bounded-iteration | prefer iterative loops with explicit segment counters over open-ended recursion on key input | bounded traversal prevents stack growth and non-terminating behavior on corrupted inputs |
+| schema-before-keys | validate schema integrity before accepting it for key parsing or traversal | broken schema graphs can otherwise create incorrect results or infinite traversal risks |
+| cycle-defense | reject schema cycles and keep traversal helpers working only on validated acyclic schema state | ancestor and descendant logic must never depend on graph shapes that can loop forever |
+| terminal-defense | reject terminal nodes that still declare children and fail closed on impossible parent child transitions | inconsistent schema edges should not be silently tolerated |
+| fail-closed | when a key fails validation return failure and do not try to salvage derived fields or canonical strings | fail-closed behavior avoids corrupted results that look valid enough to reuse |
+| canonical-output | only serialize from validated parsed data and always emit canonical label:value pairs | this prevents ambiguous or attacker-shaped strings from being reintroduced downstream |
+| cache-safety | do not cache unvalidated parse results and keep validation or prefix caches scoped and bounded | untrusted inputs should not be able to grow caches without limit |
+| batch-safety | default batch validation to stop-first and only enable collect-invalids intentionally for debugging | large hostile batches should be cheap to reject |
+| children-scan-safety | when scanning candidate keys for children compare bounded validated segment arrays and enforce maxDepth filters | relationship queries should not depend on reparsing or unchecked prefix math |
 

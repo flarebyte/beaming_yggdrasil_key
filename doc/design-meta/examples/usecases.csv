@@ -12,4 +12,5 @@ priority,usecase,why_it_matters,minimum_library_support
 11,enforce bounded depth and identifier constraints,lets applications reject pathological or malformed keys consistently,validate max depth in segment units plus id min length max length and explicit character policy from schema config
 12,stop batch validation on first failure by default,lets large validation runs abort quickly when the input set is already known to be bad,provide stop-first as the default validation mode
 13,collect all invalid keys when debugging,lets developers inspect the full set of failures when needed,provide an explicit collect-invalids mode without changing the fast default
-14,keep canonical string form,lets app code compare and persist keys consistently,serialize parsed key back to canonical keyId
+14,fail safely on corrupted keys,lets applications reject corrupted or attacker-shaped input without poisoning derived results,avoid partial parse helpers and use bounded validation and traversal
+15,keep canonical string form,lets app code compare and persist keys consistently,serialize parsed key back to canonical keyId

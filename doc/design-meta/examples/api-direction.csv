@@ -9,6 +9,7 @@ repetition-model,derive repeatability from whether a label appears in its own ch
 parsing-entrypoints,provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic
 split-combine-helpers,provide explicit helpers to split keys into label and value arrays and combine them back for single keys and batches
 validation-mode,default batch validation to stop-first and make full invalid collection an explicit debugging mode
+security-model,treat raw keys and externally supplied schemas as untrusted until validated and fail closed on corruption
 parsed-key-operations,provide navigation helpers that operate directly on ParsedKey values
 navigation-helpers,expose helpers for parent root ancestor and hierarchy inspection
 relationship-helpers,include helpers such as isDescendantOf and descendant filtering across candidate keys

@@ -63,6 +63,10 @@ reports: [{
 			title:       "03 Performance API"
 			description: "Validation and scanning strategies for large key sets."
 			notes: ["dart.key.performance-strategies", "dart.key.performance-api", "dart.key.performance-tests"]
+		}, {
+			title:       "04 Security"
+			description: "Implementation guidance for corrupted keys and untrusted schema inputs."
+			notes: ["dart.key.security"]
 		}]
 	}]
 }]
@@ -195,6 +199,13 @@ notes: [
 		filepath: "examples/performance-tests.csv"
 		arguments: ["format-csv=table"]
 		labels: ["performance", "testing", "csv"]
+	},
+	{
+		name:  "dart.key.security"
+		title: "Security Guidance"
+		filepath: "examples/security-guidance.csv"
+		arguments: ["format-csv=table"]
+		labels: ["security", "csv"]
 	},
 ]
 

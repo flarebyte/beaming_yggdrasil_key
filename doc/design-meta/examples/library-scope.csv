@@ -7,4 +7,5 @@ derived-fields,root path principal scope hierarchy and terminal kind derived fro
 navigation-helpers,parent root and ancestor helpers over one key string or ParsedKey,resource loading or tree persistence
 relationship-helpers,descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values,access policy evaluation
 validation,stable parse failures for malformed key strings including depth and identifier min max and character policy failures,UI form frameworks or remote validation protocols
+security,bounded validation and traversal rules for corrupted keys and untrusted schema input,turning the package into a general sandbox or policy engine
 serialization,canonical keyId round-trip helpers,local database sync engine
