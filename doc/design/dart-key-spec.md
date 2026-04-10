@@ -46,6 +46,8 @@ Repository target, library goal, and the narrow responsibilities of a key utilit
 | return stable validation failures for tests and diagnostics | reject malformed or unsupported key shapes |
 | provide equal-length schema-side and value-side arrays for algorithms and transformations | split canonical keys into label and value parts |
 | allow callers to combine validated labels and values back into stable key strings | rebuild canonical keys from split parts |
+| stop large validation runs on the first invalid key by default | support fail-fast batch validation |
+| optionally report all invalid keys for debugging without burdening the fast path | support diagnostic invalid collection |
 | provide root path terminal kind and hierarchy data derived from labels and segment position | expose derived fields |
 | support operations such as parent ancestor chain and root checks on strings and ParsedKey values | provide upward traversal helpers |
 | support descendant checks across candidate keys with optional depth limits on strings and ParsedKey values | provide downward relationship helpers |
@@ -66,6 +68,7 @@ Main capability areas and preferred API direction.
 | repetition-model | derive repeatability from whether a label appears in its own childLabels set instead of storing a separate flag |
 | parsing-entrypoints | provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic |
 | split-combine-helpers | provide explicit helpers to split keys into label and value arrays and combine them back for single keys and batches |
+| validation-mode | default batch validation to stop-first and make full invalid collection an explicit debugging mode |
 | parsed-key-operations | provide navigation helpers that operate directly on ParsedKey values |
 | navigation-helpers | expose helpers for parent root ancestor and hierarchy inspection |
 | relationship-helpers | include helpers such as isDescendantOf and descendant filtering across candidate keys |
@@ -163,7 +166,9 @@ export const exampleSchema: KeySchema = {
 | provide descendant filtering with include-self and max-depth options for strings and ParsedKey values | 7 | check descendant relationships within a list of keys | lets app code find related keys without building custom traversal code |
 | accept a normalized schema map keyed by label with explicit config | 8 | configure grammar through schema data | lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites |
 | validate max depth in segment units plus id min length max length and explicit character policy from schema config | 9 | enforce bounded depth and identifier constraints | lets applications reject pathological or malformed keys consistently |
-| serialize parsed key back to canonical keyId | 10 | keep canonical string form | lets app code compare and persist keys consistently |
+| provide stop-first as the default validation mode | 10 | stop batch validation on first failure by default | lets large validation runs abort quickly when the input set is already known to be bad |
+| provide an explicit collect-invalids mode without changing the fast default | 11 | collect all invalid keys when debugging | lets developers inspect the full set of failures when needed |
+| serialize parsed key back to canonical keyId | 12 | keep canonical string form | lets app code compare and persist keys consistently |
 
 ## 02 Parsing Contract
 
@@ -261,6 +266,8 @@ export type SplitKeyBatch = {
   valuesByKey: string[][];
 };
 
+export type ValidationMode = 'stop-first' | 'collect-invalids';
+
 export type DescendantQuery = {
   includeSelf?: boolean;
   maxDepth?: number;
@@ -329,7 +336,7 @@ API-shape examples for the Dart package.
 #### Parser API Example Shapes
 
 ```ts
-import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SplitKey, SplitKeyBatch } from './common';
+import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SplitKey, SplitKeyBatch, ValidationMode } from './common';
 
 export type ParseResult =
   | { ok: true; value: ParsedKey }
@@ -340,6 +347,7 @@ export interface BeamingYggdrasilKeyParser {
   parse(keyId: string): ParseResult;
   mustParse(keyId: string): ParsedKey;
   isValid(keyId: string): boolean;
+  validationMode?: ValidationMode;
   splitKey(keyId: string): SplitKey;
   splitKeys(keyIds: string[]): SplitKeyBatch;
   combineKey(labels: string[], values: string[]): string;
@@ -367,6 +375,7 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - repeatability should be derived from schema childLabels rather than a separate node flag
 // - Dart identifier checks can use direct code-unit comparisons and a small extra-character whitelist instead of regex
 // - split/combine helpers should expose labels and values as parallel arrays of equal size for single keys and batches
+// - batch validation should default to stop-first, with collect-invalids reserved for debugging workflows
 ```
 
 ### 03 Performance API
@@ -376,7 +385,7 @@ Validation and scanning strategies for large key sets.
 #### Performance API Example Shapes
 
 ```ts
-import type { KeySchema, ParsedKey, SplitKey, SplitKeyBatch } from './common';
+import type { KeySchema, ParsedKey, SplitKey, SplitKeyBatch, ValidationMode } from './common';
 
 export interface ValidationStrategy {
   name: string;
@@ -388,9 +397,16 @@ export interface SplitValidationStrategy {
   validate(split: SplitKey): boolean;
 }
 
+export interface InvalidKeyRecord {
+  keyId: string;
+  message: string;
+}
+
 export interface BatchValidationResult {
-  valid: string[];
-  invalid: Array<{ keyId: string; message: string }>;
+  mode: ValidationMode;
+  stoppedEarly: boolean;
+  firstInvalid?: InvalidKeyRecord;
+  invalids?: InvalidKeyRecord[];
 }
 
 export interface KeySetQuery {
@@ -400,6 +416,7 @@ export interface KeySetQuery {
 
 export interface BeamingYggdrasilKeyPerformanceApi {
   schema: KeySchema;
+  validationMode: ValidationMode;
 
   // Default single-key fast path using the current preferred strategy.
   validateFast(keyId: string): boolean;
@@ -422,6 +439,7 @@ export interface BeamingYggdrasilKeyPerformanceApi {
   // Allow the implementation to swap strategies as dataset size changes.
   withValidationStrategy(name: 'streaming' | 'token-array' | 'compiled-schema' | 'prefix-cached' | 'two-phase-batch'): BeamingYggdrasilKeyPerformanceApi;
   withSplitValidationStrategy(name: 'split-array-schema-walk' | 'compiled-split' | 'prefix-state-split' | 'two-phase-split'): BeamingYggdrasilKeyPerformanceApi;
+  withValidationMode(mode: ValidationMode): BeamingYggdrasilKeyPerformanceApi;
 
   // Scan a large list and return validated direct or nested children.
   childrenOf(rootKeyId: string, candidateKeyIds: string[], query?: KeySetQuery): string[];
@@ -436,6 +454,9 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 // - pick validation and scan strategy based on key count and prefix sharing, not by one fixed algorithm
 // - split label/value arrays can support additional algorithms without forcing full ParsedKey construction
 // - split-key validation can bypass separator scanning and operate directly on segment-indexed arrays
+// - batch validation should stop at the first invalid key by default
+// - collect-invalids mode is useful for debugging but should be treated as a slower diagnostic path
+// - batch results should not echo the list of valid keys because callers already hold the input set
 ```
 
 #### Validation Strategies

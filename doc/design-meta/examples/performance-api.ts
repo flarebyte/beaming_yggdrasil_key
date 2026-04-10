@@ -1,4 +1,4 @@
-import type { KeySchema, ParsedKey, SplitKey, SplitKeyBatch } from './common';
+import type { KeySchema, ParsedKey, SplitKey, SplitKeyBatch, ValidationMode } from './common';
 
 export interface ValidationStrategy {
   name: string;
@@ -10,9 +10,16 @@ export interface SplitValidationStrategy {
   validate(split: SplitKey): boolean;
 }
 
+export interface InvalidKeyRecord {
+  keyId: string;
+  message: string;
+}
+
 export interface BatchValidationResult {
-  valid: string[];
-  invalid: Array<{ keyId: string; message: string }>;
+  mode: ValidationMode;
+  stoppedEarly: boolean;
+  firstInvalid?: InvalidKeyRecord;
+  invalids?: InvalidKeyRecord[];
 }
 
 export interface KeySetQuery {
@@ -22,6 +29,7 @@ export interface KeySetQuery {
 
 export interface BeamingYggdrasilKeyPerformanceApi {
   schema: KeySchema;
+  validationMode: ValidationMode;
 
   // Default single-key fast path using the current preferred strategy.
   validateFast(keyId: string): boolean;
@@ -44,6 +52,7 @@ export interface BeamingYggdrasilKeyPerformanceApi {
   // Allow the implementation to swap strategies as dataset size changes.
   withValidationStrategy(name: 'streaming' | 'token-array' | 'compiled-schema' | 'prefix-cached' | 'two-phase-batch'): BeamingYggdrasilKeyPerformanceApi;
   withSplitValidationStrategy(name: 'split-array-schema-walk' | 'compiled-split' | 'prefix-state-split' | 'two-phase-split'): BeamingYggdrasilKeyPerformanceApi;
+  withValidationMode(mode: ValidationMode): BeamingYggdrasilKeyPerformanceApi;
 
   // Scan a large list and return validated direct or nested children.
   childrenOf(rootKeyId: string, candidateKeyIds: string[], query?: KeySetQuery): string[];
@@ -58,3 +67,6 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 // - pick validation and scan strategy based on key count and prefix sharing, not by one fixed algorithm
 // - split label/value arrays can support additional algorithms without forcing full ParsedKey construction
 // - split-key validation can bypass separator scanning and operate directly on segment-indexed arrays
+// - batch validation should stop at the first invalid key by default
+// - collect-invalids mode is useful for debugging but should be treated as a slower diagnostic path
+// - batch results should not echo the list of valid keys because callers already hold the input set

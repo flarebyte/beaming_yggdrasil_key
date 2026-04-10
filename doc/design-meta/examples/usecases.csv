@@ -8,4 +8,6 @@ priority,usecase,why_it_matters,minimum_library_support
 7,check descendant relationships within a list of keys,lets app code find related keys without building custom traversal code,provide descendant filtering with include-self and max-depth options for strings and ParsedKey values
 8,configure grammar through schema data,lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites,accept a normalized schema map keyed by label with explicit config
 9,enforce bounded depth and identifier constraints,lets applications reject pathological or malformed keys consistently,validate max depth in segment units plus id min length max length and explicit character policy from schema config
-10,keep canonical string form,lets app code compare and persist keys consistently,serialize parsed key back to canonical keyId
+10,stop batch validation on first failure by default,lets large validation runs abort quickly when the input set is already known to be bad,provide stop-first as the default validation mode
+11,collect all invalid keys when debugging,lets developers inspect the full set of failures when needed,provide an explicit collect-invalids mode without changing the fast default
+12,keep canonical string form,lets app code compare and persist keys consistently,serialize parsed key back to canonical keyId

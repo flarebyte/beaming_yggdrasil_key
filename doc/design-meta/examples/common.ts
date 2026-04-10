@@ -23,6 +23,8 @@ export type SplitKeyBatch = {
   valuesByKey: string[][];
 };
 
+export type ValidationMode = 'stop-first' | 'collect-invalids';
+
 export type DescendantQuery = {
   includeSelf?: boolean;
   maxDepth?: number;
