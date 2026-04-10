@@ -438,7 +438,7 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 
   // Allow the implementation to swap strategies as dataset size changes.
   withValidationStrategy(name: 'streaming' | 'token-array' | 'compiled-schema' | 'prefix-cached' | 'two-phase-batch'): BeamingYggdrasilKeyPerformanceApi;
-  withSplitValidationStrategy(name: 'split-array-schema-walk' | 'compiled-split' | 'prefix-state-split' | 'two-phase-split'): BeamingYggdrasilKeyPerformanceApi;
+  withSplitValidationStrategy(name: 'split-array-schema-walk' | 'deduplicated-split' | 'compiled-split' | 'prefix-state-split' | 'two-phase-split'): BeamingYggdrasilKeyPerformanceApi;
   withValidationMode(mode: ValidationMode): BeamingYggdrasilKeyPerformanceApi;
 
   // Scan a large list and return validated direct or nested children.
@@ -457,6 +457,7 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 // - batch validation should stop at the first invalid key by default
 // - collect-invalids mode is useful for debugging but should be treated as a slower diagnostic path
 // - batch results should not echo the list of valid keys because callers already hold the input set
+// - deduplicated split validation is useful when many identical keys appear in the same batch
 ```
 
 #### Validation Strategies
@@ -466,6 +467,7 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 | scan code units once and validate alternating label:value pairs while traversing schema | streaming-validator | lowest abstraction and less reusable intermediate state | default single-key validation |
 | split once and walk tokens two at a time for simple readable validation | token-array-validator | more allocations than a streaming path | reference implementation and moderate workloads |
 | walk parallel labels and values arrays while checking schema child rules and value constraints | split-array-schema-walk | still pays repeated string lookups unless schema is compiled | default validation once a key is already split |
+| use a set or hash map over split-key representations so each unique split key is schema-validated only once | deduplicated-split-validator | needs projection from unique results back to original batch positions | large batches containing many identical keys |
 | convert labels to compact ids and validate with precomputed child and value tables | compiled-split-validator | adds compilation and translation cost | large batches of pre-split keys |
 | reuse cached schema traversal state for validated label prefixes | prefix-state-split-validator | cache invalidation and memory use add complexity | many split keys sharing long prefixes |
 | run cheap length and character checks before full schema traversal | two-phase-split-validator | duplicates part of the validation pipeline | large noisy batches of split keys |

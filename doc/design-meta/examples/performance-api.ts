@@ -51,7 +51,7 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 
   // Allow the implementation to swap strategies as dataset size changes.
   withValidationStrategy(name: 'streaming' | 'token-array' | 'compiled-schema' | 'prefix-cached' | 'two-phase-batch'): BeamingYggdrasilKeyPerformanceApi;
-  withSplitValidationStrategy(name: 'split-array-schema-walk' | 'compiled-split' | 'prefix-state-split' | 'two-phase-split'): BeamingYggdrasilKeyPerformanceApi;
+  withSplitValidationStrategy(name: 'split-array-schema-walk' | 'deduplicated-split' | 'compiled-split' | 'prefix-state-split' | 'two-phase-split'): BeamingYggdrasilKeyPerformanceApi;
   withValidationMode(mode: ValidationMode): BeamingYggdrasilKeyPerformanceApi;
 
   // Scan a large list and return validated direct or nested children.
@@ -70,3 +70,4 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 // - batch validation should stop at the first invalid key by default
 // - collect-invalids mode is useful for debugging but should be treated as a slower diagnostic path
 // - batch results should not echo the list of valid keys because callers already hold the input set
+// - deduplicated split validation is useful when many identical keys appear in the same batch
