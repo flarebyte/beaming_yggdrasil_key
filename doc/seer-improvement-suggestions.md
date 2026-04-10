@@ -64,23 +64,40 @@ Agents can still work with the current JSON if the `.cue` file is also available
 
 ## Suggested Improvements
 
-### A. Add direct file output support
+### A. Add config-driven file output support
 
-Recommended CLI additions:
+Recommended config direction:
 
-```text
-seer report generate --config model.cue --output out.md
-seer report generate --config model.cue --output-dir doc/decision/data
-seer report generate --config model.cue --report decision-json --output out.json
+```cue
+reports: [
+  {
+    name: "decision-brief"
+    format: "markdown"
+    filepath: "../decision/data/decision-brief.md"
+    arguments: ["detail=standard"]
+  },
+  {
+    name: "decision-results"
+    format: "json"
+    filepath: "../decision/data/decision-results.json"
+    arguments: ["include-context=true", "pretty=true"]
+  },
+  {
+    name: "decision-summary"
+    format: "csv"
+    filepath: "../decision/data/decision-summary.csv"
+    arguments: ["columns=scenario,alternative,score,rank", "header=true"]
+  }
+]
 ```
 
 Recommended behavior:
-- `--report <name>` selects a single report by name
-- `--output <path>` writes the selected report directly to a file
-- `--output-dir <dir>` writes each configured report into a deterministic file inside that directory
-- stdout remains supported for shell composition and ad hoc use
+- each report can declare its own deterministic output path in config
+- one `seer report generate --config model.cue` invocation writes all configured outputs
+- stdout can still remain available for ad hoc use when no `filepath` is declared
+- config remains the source of truth for both report semantics and artifact locations
 
-This would remove the need for duplicated config files just to separate formats.
+This would remove the need for duplicated config files just to separate formats, while staying aligned with `seer`'s config-driven design.
 
 ### B. Add markdown detail levels
 
@@ -156,7 +173,7 @@ That would support both:
 CSV is already useful for embedding decision results into other generated docs.
 
 Useful additions would be:
-- stable support for selecting one report by name from the CLI
+- stable support for one report per configured output file
 - explicit CSV schemas per report type
 - optional metadata rows or sidecar schema docs for downstream consumers
 
@@ -165,8 +182,8 @@ The current CSV output is good for ranking tables, but harder to use when consum
 ## Recommendation Priority
 
 Highest priority:
-1. `--report <name>`
-2. `--output <path>` and/or `--output-dir <dir>`
+1. config-declared report output filepaths
+2. one invocation writing all configured report files deterministically
 3. richer markdown `detail=` support
 
 Second priority:
