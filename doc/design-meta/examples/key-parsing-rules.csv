@@ -7,6 +7,7 @@ schema-driven-validation,the parser must validate by traversing a schema from pa
 schema-node-rules,each schema node defines allowed value types child labels and whether the node is terminal,this keeps grammar logic in data instead of parser branches
 repetition-rules,a label is repeatable only when it appears in its own childLabels set,no separate repeatability flag is required
 depth-limits,maximum depth is defined in schema config in segment units,the parser counts label:value pairs rather than raw colon-delimited tokens
-id-constraints,identifier values must satisfy schema-level minimum length maximum length and allowed character pattern,this applies only to id values and not to reserved values underscore or tilde
+id-constraints,identifier values must satisfy schema-level minimum length maximum length and allowed character policy,this applies only to id values and not to reserved values underscore or tilde
+id-char-checks,identifier character validation should use direct code-unit checks against configured ASCII categories and explicit extra characters,this avoids regex-based policy evaluation
 terminal-segments,terminal nodes are determined by schema and must reject children,no hardcoded terminal label checks are required in parser code
 canonicalization,canonical serialization always emits explicit label:value pairs,the serializer does not need shape-specific exceptions

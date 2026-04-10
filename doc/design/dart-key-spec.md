@@ -60,7 +60,7 @@ Main capability areas and preferred API direction.
 | parsed-key-types | prefer immutable parsed key types |
 | segment-model | represent segments minimally as label plus value and keep semantic interpretation in derived helpers |
 | schema-input | accept a schema that defines allowed labels value types child labels and terminal behavior |
-| schema-config | keep max depth min and max id length plus allowed id characters in schema config rather than parser constants |
+| schema-config | keep max depth min and max id length plus explicit id character policy in schema config rather than parser constants |
 | repetition-model | derive repeatability from whether a label appears in its own childLabels set instead of storing a separate flag |
 | parsing-entrypoints | provide parsing and validation entrypoints that traverse schema data rather than hardcoded grammar logic |
 | parsed-key-operations | provide navigation helpers that operate directly on ParsedKey values |
@@ -89,7 +89,9 @@ export type KeySchemaConfig = {
   maxDepth: number;
   minIdChars: number;
   maxIdChars: number;
-  allowedIdPattern: string;
+  allowAsciiLetters: boolean;
+  allowDigits: boolean;
+  extraIdChars: string[];
 };
 
 export type KeySchemaNode = {
@@ -110,7 +112,9 @@ export const exampleSchema: KeySchema = {
     maxDepth: 8,
     minIdChars: 1,
     maxIdChars: 64,
-    allowedIdPattern: '^[A-Za-z0-9._-]+$',
+    allowAsciiLetters: true,
+    allowDigits: true,
+    extraIdChars: ['.', '_', '-'],
   },
   rootLabels: ['dashboard', 'profile'],
   nodesByLabel: {
@@ -140,7 +144,7 @@ export const exampleSchema: KeySchema = {
 | derived-fields | root path principal scope hierarchy and terminal kind derived from labels and schema position | application-specific meaning inferred from key kinds |
 | navigation-helpers | parent root and ancestor helpers over one key string or ParsedKey | resource loading or tree persistence |
 | relationship-helpers | descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values | access policy evaluation |
-| validation | stable parse failures for malformed key strings including depth and identifier min max and character constraint failures | UI form frameworks or remote validation protocols |
+| validation | stable parse failures for malformed key strings including depth and identifier min max and character policy failures | UI form frameworks or remote validation protocols |
 | serialization | canonical keyId round-trip helpers | local database sync engine |
 
 #### Use Cases
@@ -152,7 +156,7 @@ export const exampleSchema: KeySchema = {
 | provide ParsedKey-based parent and ancestor helpers | 3 | get parent or ancestors from a parsed key | lets app code avoid re-parsing when a ParsedKey is already available |
 | provide descendant filtering with include-self and max-depth options for strings and ParsedKey values | 4 | check descendant relationships within a list of keys | lets app code find related keys without building custom traversal code |
 | accept a normalized schema map keyed by label with explicit config | 5 | configure grammar through schema data | lets the package adapt to allowed labels child ordering value rules and validation limits without parser rewrites |
-| validate max depth in segment units plus id min length max length and allowed characters from schema config | 6 | enforce bounded depth and identifier constraints | lets applications reject pathological or malformed keys consistently |
+| validate max depth in segment units plus id min length max length and explicit character policy from schema config | 6 | enforce bounded depth and identifier constraints | lets applications reject pathological or malformed keys consistently |
 | serialize parsed key back to canonical keyId | 7 | keep canonical string form | lets app code compare and persist keys consistently |
 
 ## 02 Parsing Contract
@@ -175,7 +179,8 @@ Current supported key parsing rules.
 | this keeps grammar logic in data instead of parser branches | each schema node defines allowed value types child labels and whether the node is terminal | schema-node-rules |
 | no separate repeatability flag is required | a label is repeatable only when it appears in its own childLabels set | repetition-rules |
 | the parser counts label:value pairs rather than raw colon-delimited tokens | maximum depth is defined in schema config in segment units | depth-limits |
-| this applies only to id values and not to reserved values underscore or tilde | identifier values must satisfy schema-level minimum length maximum length and allowed character pattern | id-constraints |
+| this applies only to id values and not to reserved values underscore or tilde | identifier values must satisfy schema-level minimum length maximum length and allowed character policy | id-constraints |
+| this avoids regex-based policy evaluation | identifier character validation should use direct code-unit checks against configured ASCII categories and explicit extra characters | id-char-checks |
 | no hardcoded terminal label checks are required in parser code | terminal nodes are determined by schema and must reject children | terminal-segments |
 | the serializer does not need shape-specific exceptions | canonical serialization always emits explicit label:value pairs | canonicalization |
 
@@ -251,7 +256,9 @@ export type KeySchemaConfig = {
   maxDepth: number;
   minIdChars: number;
   maxIdChars: number;
-  allowedIdPattern: string;
+  allowAsciiLetters: boolean;
+  allowDigits: boolean;
+  extraIdChars: string[];
 };
 
 export type KeySchemaNode = {
@@ -336,7 +343,8 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - canonical string form should always use explicit label:value pairs
 // - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
 // - structure validation should traverse the schema instead of hardcoding allowed label order in parser code
-// - schema config should define max depth in segment units plus id minimum length maximum length and allowed id characters
+// - schema config should define max depth in segment units plus id minimum length maximum length and explicit character policy
 // - repeatability should be derived from schema childLabels rather than a separate node flag
+// - Dart identifier checks can use direct code-unit comparisons and a small extra-character whitelist instead of regex
 ```
 

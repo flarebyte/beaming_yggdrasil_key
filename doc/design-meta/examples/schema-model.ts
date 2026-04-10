@@ -4,7 +4,9 @@ export type KeySchemaConfig = {
   maxDepth: number;
   minIdChars: number;
   maxIdChars: number;
-  allowedIdPattern: string;
+  allowAsciiLetters: boolean;
+  allowDigits: boolean;
+  extraIdChars: string[];
 };
 
 export type KeySchemaNode = {
@@ -25,7 +27,9 @@ export const exampleSchema: KeySchema = {
     maxDepth: 8,
     minIdChars: 1,
     maxIdChars: 64,
-    allowedIdPattern: '^[A-Za-z0-9._-]+$',
+    allowAsciiLetters: true,
+    allowDigits: true,
+    extraIdChars: ['.', '_', '-'],
   },
   rootLabels: ['dashboard', 'profile'],
   nodesByLabel: {

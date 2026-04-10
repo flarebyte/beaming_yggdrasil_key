@@ -28,5 +28,6 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - canonical string form should always use explicit label:value pairs
 // - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
 // - structure validation should traverse the schema instead of hardcoding allowed label order in parser code
-// - schema config should define max depth in segment units plus id minimum length maximum length and allowed id characters
+// - schema config should define max depth in segment units plus id minimum length maximum length and explicit character policy
 // - repeatability should be derived from schema childLabels rather than a separate node flag
+// - Dart identifier checks can use direct code-unit comparisons and a small extra-character whitelist instead of regex

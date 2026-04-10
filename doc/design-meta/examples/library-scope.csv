@@ -4,5 +4,5 @@ schema-definition,normalized schema map keyed by label with child and value cons
 derived-fields,root path principal scope hierarchy and terminal kind derived from labels and schema position,application-specific meaning inferred from key kinds
 navigation-helpers,parent root and ancestor helpers over one key string or ParsedKey,resource loading or tree persistence
 relationship-helpers,descendant checks descendant filtering canonical equality and same-root checks on strings or ParsedKey values,access policy evaluation
-validation,stable parse failures for malformed key strings including depth and identifier min max and character constraint failures,UI form frameworks or remote validation protocols
+validation,stable parse failures for malformed key strings including depth and identifier min max and character policy failures,UI form frameworks or remote validation protocols
 serialization,canonical keyId round-trip helpers,local database sync engine

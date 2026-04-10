@@ -24,7 +24,9 @@ export type KeySchemaConfig = {
   maxDepth: number;
   minIdChars: number;
   maxIdChars: number;
-  allowedIdPattern: string;
+  allowAsciiLetters: boolean;
+  allowDigits: boolean;
+  extraIdChars: string[];
 };
 
 export type KeySchemaNode = {
