@@ -15,7 +15,9 @@ export interface BeamingYggdrasilKeyParser {
   splitKeys(keyIds: string[]): SplitKeyBatch;
   combineKey(labels: string[], values: string[]): string;
   combineKeys(labelsByKey: string[][], valuesByKey: string[][]): string[];
+  // Returns null when the validated key is already at anchor depth.
   parentOf(keyId: string): string | null;
+  // Ordered from the closest validated ancestor back to the anchor root.
   ancestorsOf(keyId: string): string[];
   isAnchor(keyId: string): boolean;
   isDescendantOf(anchorKeyId: string, candidateKeyId: string): boolean;
@@ -46,6 +48,7 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - shared descendants are allowed so nodesByLabel may describe a DAG, but cycles must always be rejected
 // - schema validation options should tune warning thresholds without weakening structural error checks
 // - duplicate anchor labels or duplicate child labels should be rejected before any schema traversal begins
+// - parent and ancestor helpers should operate only on validated ancestor keys and should return null instead of scope-only non-key prefixes when the input is already at anchor depth
 // - treat raw keys as untrusted input until full validation succeeds and never expose derived navigation from partial parses
 // - prefer bounded iterative traversal over recursive parsing or recursive relationship walks on attacker-controlled input
 // - only cache validated results and keep caches bounded so hostile batches cannot cause unbounded memory growth

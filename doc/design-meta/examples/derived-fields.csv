@@ -3,8 +3,8 @@ canonical,the canonical keyId string representation using explicit label:value p
 scope,structured scope segments,"leading id segments before the anchor, all validated segments before the first schema anchor label"
 anchor,required structured anchor segment,first supported anchor label and id that anchors navigation within the key
 path,structured descendant segments after the anchor,remaining validated labels and ids after the anchored segment
-parent_key,canonical key of the immediate parent when one exists,derived by removing the final effective segment from a parsed key
-ancestor_keys,ordered canonical keys from closest parent up to the anchor,derived by repeated parent traversal
+parent_key,canonical key of the immediate validated ancestor when one exists,derived by removing the final descendant segment and returning null when the key is already at anchor depth
+ancestor_keys,ordered canonical keys from closest validated ancestor back to the anchor root,derived by repeated parent traversal without producing scope-only non-key strings
 kind_path,label-only view of scope anchor and path,derived by reading each segment label in order after schema validation
 terminal_kind,the last effective kind for the key,derived from the label of the final validated path segment or from the anchor label when no path exists
 derived_kind_hierarchy,anchor plus path labels,derived from labels segment position and schema-validated path structure

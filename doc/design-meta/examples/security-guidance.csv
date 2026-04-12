@@ -12,4 +12,4 @@ identifier-policy,apply idAlphabet only to id values and validate labels with a 
 alphabet-implementation,use direct code-unit predicates for each idAlphabet preset and explicit extraIdChars membership checks,preset-based checks are easier to audit than ad hoc regex and make hex oriented policies unambiguous
 cache-safety,do not cache unvalidated parse results and keep validation or prefix caches scoped and bounded,untrusted inputs should not be able to grow caches without limit
 batch-safety,default batch validation to stop-first and only enable collect-invalids intentionally for debugging,large hostile batches should be cheap to reject
-children-scan-safety,when scanning candidate keys for children compare bounded validated segment arrays and enforce maxDepth filters,relationship queries should not depend on reparsing or unchecked prefix math
+descendant-scan-safety,when scanning candidate keys for descendants compare bounded validated segment arrays and enforce maxDepth filters,relationship queries should not depend on reparsing or unchecked prefix math

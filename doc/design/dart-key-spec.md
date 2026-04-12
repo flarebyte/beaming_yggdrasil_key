@@ -273,7 +273,7 @@ export const exampleIssues: SchemaValidationIssue[] = [
 | schema-safety | allow DAG-style schema reuse but reject loops and incompatible terminal-child declarations | treating every graph shape as equally safe |
 | derived-fields | anchor path scope hierarchy and terminal kind derived from labels and schema position | application-specific meaning inferred from key kinds |
 | navigation-helpers | parent anchor and ancestor helpers over one key string or ParsedKey | resource loading or tree persistence |
-| relationship-helpers | descendant checks descendant filtering canonical equality and same-anchor checks on strings or ParsedKey values | access policy evaluation |
+| relationship-helpers | descendant checks and descendant filtering on strings or ParsedKey values | access policy evaluation |
 | validation | stable parse failures for malformed key strings including depth and identifier min max and character policy failures | UI form frameworks or remote validation protocols |
 | security | bounded validation and traversal rules for corrupted keys and untrusted schema input | turning the package into a general sandbox or policy engine |
 | serialization | canonical keyId round-trip helpers | local database sync engine |
@@ -333,13 +333,13 @@ Key examples that should parse successfully.
 
 | expected_anchor | expected_terminal_kind | key_id | notes |
 | --- | --- | --- | --- |
-| dashboard | dashboard | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07 | anchor key |
-| dashboard | text | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:text:_ | note text leaf with explicit intrinsic value |
-| dashboard | count | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:like:_:count:_ | derived count leaf with explicit intrinsic segments |
-| dashboard | thumbnail | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:thumbnail:_ | thumbnail intrinsic leaf |
-| dashboard | language | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:language:_ | language intrinsic leaf |
-| dashboard | user | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:~ | contextual self segment using reserved tilde |
-| profile | profile | department:d1:team:t1:profile:p1 | alternate supported scope and anchor labels |
+| dashboard | dashboard | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07 | anchor key |
+| dashboard | text | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:note:c7c401c2:text:_ | note text leaf with explicit intrinsic value |
+| dashboard | count | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:note:c7c401c2:like:_:count:_ | derived count leaf with explicit intrinsic segments |
+| dashboard | thumbnail | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:note:c7c401c2:thumbnail:_ | thumbnail intrinsic leaf |
+| dashboard | language | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:note:c7c401c2:language:_ | language intrinsic leaf |
+| dashboard | user | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:user:~ | contextual self segment using reserved tilde |
+| profile | profile | department:d1:team:a1:profile:b1 | alternate supported scope and anchor labels |
 
 ### 03 Rejection Examples
 
@@ -351,14 +351,14 @@ Key examples that should fail deterministically.
 | --- | --- |
 | invalid key: empty key |  |
 | invalid key: incomplete key | tenant |
-| invalid key because anchor id is missing | tenant:t8f3a1c2:dashboard |
-| invalid key because every segment must include label and value | tenant:t8f3a1c2:group |
-| invalid key because intrinsic terminal segments must use explicit underscore value | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:text |
-| invalid key: unsupported label "missing" | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:missing:n1:text |
-| invalid key because underscore alias must follow an explicit allowed label | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:_ |
-| invalid key because terminal segment cannot have children | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:text:_:child:c1 |
-| invalid key because user only allows reserved contextual or intrinsic values in that position | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:u1 |
-| invalid key because user only allows reserved contextual or intrinsic values under like | tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:like:_:user:u1 |
+| invalid key because anchor id is missing | tenant:a8f3a1c2:dashboard |
+| invalid key because every segment must include label and value | tenant:a8f3a1c2:group |
+| invalid key because intrinsic terminal segments must use explicit underscore value | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:note:c7c401c2:text |
+| invalid key: unsupported label "missing" | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:missing:a1:text |
+| invalid key because underscore alias must follow an explicit allowed label | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:_ |
+| invalid key because terminal segment cannot have children | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:text:_:child:c1 |
+| invalid key because user only allows reserved contextual or intrinsic values in that position | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:user:a1 |
+| invalid key because user only allows reserved contextual or intrinsic values under like | tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:like:_:user:a1 |
 
 ## 03 Derived Data
 
@@ -484,8 +484,8 @@ export type ParseFailure = {
 | scope | structured scope segments | leading id segments before the anchor, all validated segments before the first schema anchor label |
 | anchor | required structured anchor segment | first supported anchor label and id that anchors navigation within the key |
 | path | structured descendant segments after the anchor | remaining validated labels and ids after the anchored segment |
-| parent_key | canonical key of the immediate parent when one exists | derived by removing the final effective segment from a parsed key |
-| ancestor_keys | ordered canonical keys from closest parent up to the anchor | derived by repeated parent traversal |
+| parent_key | canonical key of the immediate validated ancestor when one exists | derived by removing the final descendant segment and returning null when the key is already at anchor depth |
+| ancestor_keys | ordered canonical keys from closest validated ancestor back to the anchor root | derived by repeated parent traversal without producing scope-only non-key strings |
 | kind_path | label-only view of scope anchor and path | derived by reading each segment label in order after schema validation |
 | terminal_kind | the last effective kind for the key | derived from the label of the final validated path segment or from the anchor label when no path exists |
 | derived_kind_hierarchy | anchor plus path labels | derived from labels segment position and schema-validated path structure |
@@ -495,45 +495,45 @@ export type ParseFailure = {
 ```ts
 import type { ParsedKey } from './common';
 
-export const dashboardRootKey = 'tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07';
+export const dashboardRootKey = 'tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07';
 
 export const dashboardRootParsed: ParsedKey = {
   canonical: dashboardRootKey,
   kindPath: ['tenant', 'group', 'dashboard'],
   scope: [
-    { label: 'tenant', value: 't8f3a1c2' },
-    { label: 'group', value: 'g4b7d9e1' },
+    { label: 'tenant', value: 'a8f3a1c2' },
+    { label: 'group', value: 'b4b7d9e1' },
   ],
   anchor: { label: 'dashboard', value: 'd1e52f07' },
   path: [],
   terminalKind: 'dashboard',
 };
 
-export const noteTextLeafKey = 'tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:note:n7c401c2:text:_';
+export const noteTextLeafKey = 'tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:note:c7c401c2:text:_';
 
 export const noteTextLeafParsed: ParsedKey = {
   canonical: noteTextLeafKey,
   kindPath: ['tenant', 'group', 'dashboard', 'note', 'text'],
   scope: [
-    { label: 'tenant', value: 't8f3a1c2' },
-    { label: 'group', value: 'g4b7d9e1' },
+    { label: 'tenant', value: 'a8f3a1c2' },
+    { label: 'group', value: 'b4b7d9e1' },
   ],
   anchor: { label: 'dashboard', value: 'd1e52f07' },
   path: [
-    { label: 'note', value: 'n7c401c2' },
+    { label: 'note', value: 'c7c401c2' },
     { label: 'text', value: '_' },
   ],
   terminalKind: 'text',
 };
 
-export const contextualUserKey = 'tenant:t8f3a1c2:group:g4b7d9e1:dashboard:d1e52f07:user:~';
+export const contextualUserKey = 'tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:user:~';
 
 export const contextualUserParsed: ParsedKey = {
   canonical: contextualUserKey,
   kindPath: ['tenant', 'group', 'dashboard', 'user'],
   scope: [
-    { label: 'tenant', value: 't8f3a1c2' },
-    { label: 'group', value: 'g4b7d9e1' },
+    { label: 'tenant', value: 'a8f3a1c2' },
+    { label: 'group', value: 'b4b7d9e1' },
   ],
   anchor: { label: 'dashboard', value: 'd1e52f07' },
   path: [
@@ -542,16 +542,16 @@ export const contextualUserParsed: ParsedKey = {
   terminalKind: 'user',
 };
 
-export const profileRootKey = 'department:d1:team:t1:profile:p1';
+export const profileRootKey = 'department:d1:team:a1:profile:b1';
 
 export const profileRootParsed: ParsedKey = {
   canonical: profileRootKey,
   kindPath: ['department', 'team', 'profile'],
   scope: [
     { label: 'department', value: 'd1' },
-    { label: 'team', value: 't1' },
+    { label: 'team', value: 'a1' },
   ],
-  anchor: { label: 'profile', value: 'p1' },
+  anchor: { label: 'profile', value: 'b1' },
   path: [],
   terminalKind: 'profile',
 };
@@ -586,7 +586,9 @@ export interface BeamingYggdrasilKeyParser {
   splitKeys(keyIds: string[]): SplitKeyBatch;
   combineKey(labels: string[], values: string[]): string;
   combineKeys(labelsByKey: string[][], valuesByKey: string[][]): string[];
+  // Returns null when the validated key is already at anchor depth.
   parentOf(keyId: string): string | null;
+  // Ordered from the closest validated ancestor back to the anchor root.
   ancestorsOf(keyId: string): string[];
   isAnchor(keyId: string): boolean;
   isDescendantOf(anchorKeyId: string, candidateKeyId: string): boolean;
@@ -617,6 +619,7 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - shared descendants are allowed so nodesByLabel may describe a DAG, but cycles must always be rejected
 // - schema validation options should tune warning thresholds without weakening structural error checks
 // - duplicate anchor labels or duplicate child labels should be rejected before any schema traversal begins
+// - parent and ancestor helpers should operate only on validated ancestor keys and should return null instead of scope-only non-key prefixes when the input is already at anchor depth
 // - treat raw keys as untrusted input until full validation succeeds and never expose derived navigation from partial parses
 // - prefer bounded iterative traversal over recursive parsing or recursive relationship walks on attacker-controlled input
 // - only cache validated results and keep caches bounded so hostile batches cannot cause unbounded memory growth
@@ -629,7 +632,7 @@ Validation and scanning strategies for large key sets.
 #### Performance API Example Shapes
 
 ```ts
-import type { KeySchema, ParsedKey, SplitKey, SplitKeyBatch, ValidationMode } from './common';
+import type { DescendantQuery, KeySchema, ParsedKey, SplitKey, SplitKeyBatch, ValidationMode } from './common';
 
 export interface ValidationStrategy {
   name: string;
@@ -651,11 +654,6 @@ export interface BatchValidationResult {
   stoppedEarly: boolean;
   firstInvalid?: InvalidKeyRecord;
   invalids?: InvalidKeyRecord[];
-}
-
-export interface KeySetQuery {
-  includeSelf?: boolean;
-  maxDepth?: number;
 }
 
 export interface BeamingYggdrasilKeyPerformanceApi {
@@ -685,11 +683,11 @@ export interface BeamingYggdrasilKeyPerformanceApi {
   withSplitValidationStrategy(name: 'split-array-schema-walk' | 'deduplicated-split' | 'compiled-split' | 'prefix-state-split' | 'two-phase-split'): BeamingYggdrasilKeyPerformanceApi;
   withValidationMode(mode: ValidationMode): BeamingYggdrasilKeyPerformanceApi;
 
-  // Scan a large list and return validated direct or nested children.
-  childrenOf(anchorKeyId: string, candidateKeyIds: string[], query?: KeySetQuery): string[];
+  // Scan a large list and return validated descendants. Use maxDepth: 1 for direct children only.
+  descendantsOf(anchorKeyId: string, candidateKeyIds: string[], query?: DescendantQuery): string[];
 
   // Parsed-key variant to avoid reparsing when callers already hold validated keys.
-  childrenOfParsed(anchor: ParsedKey, candidateKeys: ParsedKey[], query?: KeySetQuery): ParsedKey[];
+  descendantsOfParsed(anchor: ParsedKey, candidateKeys: ParsedKey[], query?: DescendantQuery): ParsedKey[];
 }
 
 // Performance guidance:
@@ -719,8 +717,8 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 | precompute label ids child lookups and value rules to reduce repeated map and string work | compiled-schema-validator | adds setup cost and more internal machinery | large batches of keys |
 | reuse validated prefix states so related keys do not restart schema traversal from the anchor | prefix-cached-validator | cache management adds memory overhead | many keys sharing common prefixes |
 | run cheap structural checks before full schema traversal to reject bad keys early | two-phase-batch-validator | duplicates part of validation logic across phases | large noisy input sets |
-| compare validated segment prefixes instead of reparsing full candidates every time | prefix-scan-children | may still be linear without a dedicated index | find children or descendants by scanning many keys |
-| build an index keyed by canonical parent or validated prefix for faster repeated queries | indexed-children-lookup | index build and update cost may not pay off for small sets | repeated child retrieval over large stable sets |
+| compare validated segment prefixes instead of reparsing full candidates every time | prefix-scan-descendants | may still be linear without a dedicated index | find descendants by scanning many keys |
+| build an index keyed by canonical parent or validated prefix for faster repeated queries | indexed-descendants-lookup | index build and update cost may not pay off for small sets | repeated descendant retrieval over large stable sets |
 
 #### Performance Test Suggestions
 
@@ -732,8 +730,8 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 | many keys sharing long common prefixes | measure prefix reuse | prefix-cached and prefix-state-split strategies outperform restart-from-anchor validation | batch-benchmark-shared-prefixes |
 | batches with an invalid key early middle and late in the list | measure stop-first versus collect-invalids cost | stop-first exits earlier and allocates less than collect-invalids | mixed-validity-benchmark |
 | large batches of canonical keys | measure split and combine overhead | split helpers preserve equal label/value lengths and combine helpers round-trip back to canonical strings | split-helper-benchmark |
-| one anchor with thousands of candidate keys | compare child retrieval by scan | prefix-scan child lookup returns the same result set as a trusted baseline | children-scan-benchmark |
-| repeated child queries over a stable large key set | measure indexed child retrieval payoff | index build cost is visible but repeated lookups become faster than repeated scans after enough queries | children-index-benchmark |
+| one anchor with thousands of candidate keys | compare descendant retrieval by scan | prefix-scan descendant lookup returns the same result set as a trusted baseline | descendants-scan-benchmark |
+| repeated descendant queries over a stable large key set | measure indexed descendant retrieval payoff | index build cost is visible but repeated lookups become faster than repeated scans after enough queries | descendants-index-benchmark |
 | stable representative datasets checked into test fixtures | catch accidental slowdowns | wall-clock or operation-count thresholds fail when a strategy regresses materially | regression-threshold-test |
 
 ### 04 Security
@@ -757,5 +755,5 @@ Implementation guidance for corrupted keys and untrusted schema inputs.
 | alphabet-implementation | use direct code-unit predicates for each idAlphabet preset and explicit extraIdChars membership checks | preset-based checks are easier to audit than ad hoc regex and make hex oriented policies unambiguous |
 | cache-safety | do not cache unvalidated parse results and keep validation or prefix caches scoped and bounded | untrusted inputs should not be able to grow caches without limit |
 | batch-safety | default batch validation to stop-first and only enable collect-invalids intentionally for debugging | large hostile batches should be cheap to reject |
-| children-scan-safety | when scanning candidate keys for children compare bounded validated segment arrays and enforce maxDepth filters | relationship queries should not depend on reparsing or unchecked prefix math |
+| descendant-scan-safety | when scanning candidate keys for descendants compare bounded validated segment arrays and enforce maxDepth filters | relationship queries should not depend on reparsing or unchecked prefix math |
 

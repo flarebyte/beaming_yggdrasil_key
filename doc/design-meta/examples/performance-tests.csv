@@ -5,6 +5,6 @@ batch-benchmark-duplicate-keys,measure benefit of duplicate elimination,large ba
 batch-benchmark-shared-prefixes,measure prefix reuse,many keys sharing long common prefixes,prefix-cached and prefix-state-split strategies outperform restart-from-anchor validation
 mixed-validity-benchmark,measure stop-first versus collect-invalids cost,batches with an invalid key early middle and late in the list,stop-first exits earlier and allocates less than collect-invalids
 split-helper-benchmark,measure split and combine overhead,large batches of canonical keys,split helpers preserve equal label/value lengths and combine helpers round-trip back to canonical strings
-children-scan-benchmark,compare child retrieval by scan,one anchor with thousands of candidate keys,prefix-scan child lookup returns the same result set as a trusted baseline
-children-index-benchmark,measure indexed child retrieval payoff,repeated child queries over a stable large key set,index build cost is visible but repeated lookups become faster than repeated scans after enough queries
+descendants-scan-benchmark,compare descendant retrieval by scan,one anchor with thousands of candidate keys,prefix-scan descendant lookup returns the same result set as a trusted baseline
+descendants-index-benchmark,measure indexed descendant retrieval payoff,repeated descendant queries over a stable large key set,index build cost is visible but repeated lookups become faster than repeated scans after enough queries
 regression-threshold-test,catch accidental slowdowns,stable representative datasets checked into test fixtures,wall-clock or operation-count thresholds fail when a strategy regresses materially

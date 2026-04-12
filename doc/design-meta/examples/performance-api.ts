@@ -1,4 +1,4 @@
-import type { KeySchema, ParsedKey, SplitKey, SplitKeyBatch, ValidationMode } from './common';
+import type { DescendantQuery, KeySchema, ParsedKey, SplitKey, SplitKeyBatch, ValidationMode } from './common';
 
 export interface ValidationStrategy {
   name: string;
@@ -20,11 +20,6 @@ export interface BatchValidationResult {
   stoppedEarly: boolean;
   firstInvalid?: InvalidKeyRecord;
   invalids?: InvalidKeyRecord[];
-}
-
-export interface KeySetQuery {
-  includeSelf?: boolean;
-  maxDepth?: number;
 }
 
 export interface BeamingYggdrasilKeyPerformanceApi {
@@ -54,11 +49,11 @@ export interface BeamingYggdrasilKeyPerformanceApi {
   withSplitValidationStrategy(name: 'split-array-schema-walk' | 'deduplicated-split' | 'compiled-split' | 'prefix-state-split' | 'two-phase-split'): BeamingYggdrasilKeyPerformanceApi;
   withValidationMode(mode: ValidationMode): BeamingYggdrasilKeyPerformanceApi;
 
-  // Scan a large list and return validated direct or nested children.
-  childrenOf(anchorKeyId: string, candidateKeyIds: string[], query?: KeySetQuery): string[];
+  // Scan a large list and return validated descendants. Use maxDepth: 1 for direct children only.
+  descendantsOf(anchorKeyId: string, candidateKeyIds: string[], query?: DescendantQuery): string[];
 
   // Parsed-key variant to avoid reparsing when callers already hold validated keys.
-  childrenOfParsed(anchor: ParsedKey, candidateKeys: ParsedKey[], query?: KeySetQuery): ParsedKey[];
+  descendantsOfParsed(anchor: ParsedKey, candidateKeys: ParsedKey[], query?: DescendantQuery): ParsedKey[];
 }
 
 // Performance guidance:
