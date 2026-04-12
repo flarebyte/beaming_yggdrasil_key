@@ -8,6 +8,8 @@ cycle-defense,reject schema cycles and keep traversal helpers working only on va
 terminal-defense,reject terminal nodes that still declare children and fail closed on impossible parent child transitions,inconsistent schema edges should not be silently tolerated
 fail-closed,when a key fails validation return failure and do not try to salvage derived fields or canonical strings,fail-closed behavior avoids corrupted results that look valid enough to reuse
 canonical-output,only serialize from validated parsed data and always emit canonical label:value pairs,this prevents ambiguous or attacker-shaped strings from being reintroduced downstream
+identifier-policy,apply idAlphabet only to id values and validate labels with a separate stricter rule,mixing label validation with identifier validation can accidentally broaden accepted schema tokens
+alphabet-implementation,use direct code-unit predicates for each idAlphabet preset and explicit extraIdChars membership checks,preset-based checks are easier to audit than ad hoc regex and make hex oriented policies unambiguous
 cache-safety,do not cache unvalidated parse results and keep validation or prefix caches scoped and bounded,untrusted inputs should not be able to grow caches without limit
 batch-safety,default batch validation to stop-first and only enable collect-invalids intentionally for debugging,large hostile batches should be cheap to reject
 children-scan-safety,when scanning candidate keys for children compare bounded validated segment arrays and enforce maxDepth filters,relationship queries should not depend on reparsing or unchecked prefix math

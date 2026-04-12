@@ -606,9 +606,11 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
 // - ParsedKey should distinguish scope from anchor from path: scope is before the first schema anchor label, anchor is that first anchor-labeled segment, and path is everything after it
 // - structure validation should traverse the schema instead of hardcoding allowed label order in parser code
-// - schema config should define max depth in segment units plus id minimum length maximum length and explicit character policy
+// - schema config should define max depth in segment units plus id minimum length maximum length and an idAlphabet preset
 // - repeatability should be derived from schema childLabels rather than a separate node flag
-// - Dart identifier checks can use direct code-unit comparisons and a small extra-character whitelist instead of regex
+// - identifier checks should map idAlphabet to direct code-unit predicates plus a small extra-character whitelist instead of regex
+// - labels should be validated separately from id values because labels are schema tokens, not user-configured opaque identifiers
+// - lowercase hexadecimal with dash should be a first-class implementation path because it matches common UUID-style identifiers
 // - split/combine helpers should expose labels and values as parallel arrays of equal size for single keys and batches
 // - batch validation should default to stop-first, with collect-invalids reserved for debugging workflows
 // - schema validation should detect cycles broken child references unreachable nodes and risky shapes before key parsing begins
@@ -696,6 +698,7 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 // - pick validation and scan strategy based on key count and prefix sharing, not by one fixed algorithm
 // - split label/value arrays can support additional algorithms without forcing full ParsedKey construction
 // - split-key validation can bypass separator scanning and operate directly on segment-indexed arrays
+// - compile idAlphabet presets to small branchy predicates instead of generic regex so hot-path id checks stay cheap
 // - batch validation should stop at the first invalid key by default
 // - collect-invalids mode is useful for debugging but should be treated as a slower diagnostic path
 // - batch results should not echo the list of valid keys because callers already hold the input set
@@ -750,6 +753,8 @@ Implementation guidance for corrupted keys and untrusted schema inputs.
 | terminal-defense | reject terminal nodes that still declare children and fail closed on impossible parent child transitions | inconsistent schema edges should not be silently tolerated |
 | fail-closed | when a key fails validation return failure and do not try to salvage derived fields or canonical strings | fail-closed behavior avoids corrupted results that look valid enough to reuse |
 | canonical-output | only serialize from validated parsed data and always emit canonical label:value pairs | this prevents ambiguous or attacker-shaped strings from being reintroduced downstream |
+| identifier-policy | apply idAlphabet only to id values and validate labels with a separate stricter rule | mixing label validation with identifier validation can accidentally broaden accepted schema tokens |
+| alphabet-implementation | use direct code-unit predicates for each idAlphabet preset and explicit extraIdChars membership checks | preset-based checks are easier to audit than ad hoc regex and make hex oriented policies unambiguous |
 | cache-safety | do not cache unvalidated parse results and keep validation or prefix caches scoped and bounded | untrusted inputs should not be able to grow caches without limit |
 | batch-safety | default batch validation to stop-first and only enable collect-invalids intentionally for debugging | large hostile batches should be cheap to reject |
 | children-scan-safety | when scanning candidate keys for children compare bounded validated segment arrays and enforce maxDepth filters | relationship queries should not depend on reparsing or unchecked prefix math |

@@ -35,9 +35,11 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
 // - ParsedKey should distinguish scope from anchor from path: scope is before the first schema anchor label, anchor is that first anchor-labeled segment, and path is everything after it
 // - structure validation should traverse the schema instead of hardcoding allowed label order in parser code
-// - schema config should define max depth in segment units plus id minimum length maximum length and explicit character policy
+// - schema config should define max depth in segment units plus id minimum length maximum length and an idAlphabet preset
 // - repeatability should be derived from schema childLabels rather than a separate node flag
-// - Dart identifier checks can use direct code-unit comparisons and a small extra-character whitelist instead of regex
+// - identifier checks should map idAlphabet to direct code-unit predicates plus a small extra-character whitelist instead of regex
+// - labels should be validated separately from id values because labels are schema tokens, not user-configured opaque identifiers
+// - lowercase hexadecimal with dash should be a first-class implementation path because it matches common UUID-style identifiers
 // - split/combine helpers should expose labels and values as parallel arrays of equal size for single keys and batches
 // - batch validation should default to stop-first, with collect-invalids reserved for debugging workflows
 // - schema validation should detect cycles broken child references unreachable nodes and risky shapes before key parsing begins

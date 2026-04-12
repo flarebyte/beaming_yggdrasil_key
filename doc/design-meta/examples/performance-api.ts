@@ -67,6 +67,7 @@ export interface BeamingYggdrasilKeyPerformanceApi {
 // - pick validation and scan strategy based on key count and prefix sharing, not by one fixed algorithm
 // - split label/value arrays can support additional algorithms without forcing full ParsedKey construction
 // - split-key validation can bypass separator scanning and operate directly on segment-indexed arrays
+// - compile idAlphabet presets to small branchy predicates instead of generic regex so hot-path id checks stay cheap
 // - batch validation should stop at the first invalid key by default
 // - collect-invalids mode is useful for debugging but should be treated as a slower diagnostic path
 // - batch results should not echo the list of valid keys because callers already hold the input set
