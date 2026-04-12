@@ -22,7 +22,6 @@ export type KeySchemaNode = {
   label: string;
   valueTypes: SchemaValueType[];
   childLabels: string[];
-  terminal?: boolean;
 };
 
 export type KeySchema = {
@@ -51,10 +50,10 @@ export const exampleSchema: KeySchema = {
     dashboard: { label: 'dashboard', valueTypes: ['id'], childLabels: ['note', 'language', 'thumbnail', 'like', 'user'] },
     note: { label: 'note', valueTypes: ['id'], childLabels: ['text', 'language', 'thumbnail', 'like'] },
     like: { label: 'like', valueTypes: ['_'], childLabels: ['count', 'user', 'member', 'subscriber'] },
-    text: { label: 'text', valueTypes: ['_'], childLabels: [], terminal: true },
-    count: { label: 'count', valueTypes: ['_'], childLabels: [], terminal: true },
-    language: { label: 'language', valueTypes: ['_'], childLabels: [], terminal: true },
-    thumbnail: { label: 'thumbnail', valueTypes: ['_'], childLabels: [], terminal: true },
+    text: { label: 'text', valueTypes: ['_'], childLabels: [] },
+    count: { label: 'count', valueTypes: ['_'], childLabels: [] },
+    language: { label: 'language', valueTypes: ['_'], childLabels: [] },
+    thumbnail: { label: 'thumbnail', valueTypes: ['_'], childLabels: [] },
     user: { label: 'user', valueTypes: ['~', '_'], childLabels: [] },
     member: { label: 'member', valueTypes: ['id', '_'], childLabels: [] },
     subscriber: { label: 'subscriber', valueTypes: ['id', '_'], childLabels: [] },

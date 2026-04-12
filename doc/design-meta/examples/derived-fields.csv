@@ -7,4 +7,4 @@ parent_key,canonical key of the immediate validated ancestor when one exists,der
 ancestor_keys,ordered canonical keys from closest validated ancestor back to the anchor root,derived by repeated parent traversal without producing scope-only non-key strings
 kind_path,label-only view of scope anchor and path,derived by reading each segment label in order after schema validation
 terminal_kind,the last effective kind for the key,derived from the label of the final validated path segment or from the anchor label when no path exists
-derived_kind_hierarchy,anchor plus path labels,derived from labels segment position and schema-validated path structure
+derived_kind_anchor_path,anchor plus path labels,derived from the anchor label followed by descendant path labels after schema validation

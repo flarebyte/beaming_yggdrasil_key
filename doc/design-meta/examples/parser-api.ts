@@ -1,4 +1,4 @@
-import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SchemaValidationOptions, SchemaValidationResult, SplitKey, SplitKeyBatch, ValidationMode } from './common';
+import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SchemaValidationOptions, SchemaValidationResult, SplitKey, SplitKeyBatch } from './common';
 
 export type ParseResult =
   | { ok: true; value: ParsedKey }
@@ -10,7 +10,6 @@ export interface BeamingYggdrasilKeyParser {
   parse(keyId: string): ParseResult;
   mustParse(keyId: string): ParsedKey;
   isValid(keyId: string): boolean;
-  validationMode?: ValidationMode;
   splitKey(keyId: string): SplitKey;
   splitKeys(keyIds: string[]): SplitKeyBatch;
   combineKey(labels: string[], values: string[]): string;
@@ -44,10 +43,10 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - labels should be validated separately from id values because labels are schema tokens, not user-configured opaque identifiers
 // - lowercase hexadecimal with dash should be a first-class implementation path because it matches common UUID-style identifiers
 // - split/combine helpers should expose labels and values as parallel arrays of equal size for single keys and batches
-// - batch validation should default to stop-first, with collect-invalids reserved for debugging workflows
 // - schema validation should detect cycles broken child references unreachable nodes and risky shapes before key parsing begins
 // - shared descendants are allowed so nodesByLabel may describe a DAG, but cycles must always be rejected
 // - schema validation options should tune warning thresholds without weakening structural error checks
+// - deriveKind should expose anchorPath as the anchor label followed by descendant path labels and should not duplicate scope labels already present in kindPath
 // - duplicate anchor labels or duplicate child labels should be rejected before any schema traversal begins
 // - isAnchorKey should mean the validated key ends at the anchor segment with path.length === 0
 // - parent and ancestor helpers should operate only on validated ancestor keys and should return null instead of scope-only non-key prefixes when the input is already at anchor depth

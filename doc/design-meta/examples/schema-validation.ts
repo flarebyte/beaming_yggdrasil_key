@@ -16,7 +16,6 @@ export const schemaValidationChecks = [
   'childLabels should not contain duplicates within the same node',
   'shared descendants are allowed, so the schema may be a DAG',
   'cycles must be reported as errors, including self-loops and longer loops',
-  'terminal nodes must declare an empty childLabels array',
   'every anchor label should be reachable from at least one configured root label',
   'unreachable nodes should be reported at least as warnings',
   'risky shapes such as very broad fan-out or excessive configured depth may be warnings in tolerant mode',

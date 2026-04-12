@@ -70,7 +70,7 @@ Repository target, library goal, and the narrow responsibilities of a key utilit
 | allow callers to combine validated labels and values back into stable key strings | rebuild canonical keys from split parts |
 | stop large validation runs on the first invalid key by default | support fail-fast batch validation |
 | optionally report all invalid keys for debugging without burdening the fast path | support diagnostic invalid collection |
-| provide anchor path terminal kind and hierarchy data derived from labels and segment position | expose derived fields |
+| provide anchor path terminal kind and kind-path data derived from labels and segment position | expose derived fields |
 | support operations such as parent ancestor chain and anchor-root checks on strings and ParsedKey values | provide upward traversal helpers |
 | support descendant checks across candidate keys with optional depth limits on strings and ParsedKey values | provide downward relationship helpers |
 | keep persisted and compared key strings stable | serialize parsed keys back to canonical form |
@@ -85,7 +85,7 @@ Main capability areas and preferred API direction.
 | --- | --- |
 | parsed-key-types | prefer immutable parsed key types |
 | segment-model | represent segments minimally as label plus value and keep semantic interpretation in derived helpers |
-| schema-input | accept a schema that defines allowed root labels anchor labels value types child labels and terminal behavior |
+| schema-input | accept a schema that defines allowed root labels anchor labels value types and child labels where empty childLabels implies a terminal leaf |
 | schema-graph | allow shared child definitions across parents but validate schema edges so loops are always rejected |
 | schema-config | keep max depth min and max id length plus explicit id character policy in schema config rather than parser constants |
 | schema-validation | validate schemas with explicit options for cycles undefined child links unreachable nodes and risky shapes before using them for parsing |
@@ -95,7 +95,7 @@ Main capability areas and preferred API direction.
 | validation-mode | default batch validation to stop-first and make full invalid collection an explicit debugging mode |
 | security-model | treat raw keys and externally supplied schemas as untrusted until validated and fail closed on corruption |
 | parsed-key-operations | provide navigation helpers that operate directly on ParsedKey values |
-| navigation-helpers | expose helpers for parent anchor-root ancestor and hierarchy inspection |
+| navigation-helpers | expose helpers for parent anchor-root ancestor and kind-path inspection |
 | relationship-helpers | include helpers such as isDescendantOf and descendant filtering across candidate keys |
 | collection-helpers | support utility operations over lists of keys including optional inclusion of the anchor key maximum depth and split batch processing |
 | error-model | prefer stable error types or explicit parse-result objects |
@@ -138,7 +138,6 @@ export type KeySchemaNode = {
   label: string;
   valueTypes: SchemaValueType[];
   childLabels: string[];
-  terminal?: boolean;
 };
 
 export type KeySchema = {
@@ -167,10 +166,10 @@ export const exampleSchema: KeySchema = {
     dashboard: { label: 'dashboard', valueTypes: ['id'], childLabels: ['note', 'language', 'thumbnail', 'like', 'user'] },
     note: { label: 'note', valueTypes: ['id'], childLabels: ['text', 'language', 'thumbnail', 'like'] },
     like: { label: 'like', valueTypes: ['_'], childLabels: ['count', 'user', 'member', 'subscriber'] },
-    text: { label: 'text', valueTypes: ['_'], childLabels: [], terminal: true },
-    count: { label: 'count', valueTypes: ['_'], childLabels: [], terminal: true },
-    language: { label: 'language', valueTypes: ['_'], childLabels: [], terminal: true },
-    thumbnail: { label: 'thumbnail', valueTypes: ['_'], childLabels: [], terminal: true },
+    text: { label: 'text', valueTypes: ['_'], childLabels: [] },
+    count: { label: 'count', valueTypes: ['_'], childLabels: [] },
+    language: { label: 'language', valueTypes: ['_'], childLabels: [] },
+    thumbnail: { label: 'thumbnail', valueTypes: ['_'], childLabels: [] },
     user: { label: 'user', valueTypes: ['~', '_'], childLabels: [] },
     member: { label: 'member', valueTypes: ['id', '_'], childLabels: [] },
     subscriber: { label: 'subscriber', valueTypes: ['id', '_'], childLabels: [] },
@@ -209,7 +208,6 @@ export const schemaValidationChecks = [
   'childLabels should not contain duplicates within the same node',
   'shared descendants are allowed, so the schema may be a DAG',
   'cycles must be reported as errors, including self-loops and longer loops',
-  'terminal nodes must declare an empty childLabels array',
   'every anchor label should be reachable from at least one configured root label',
   'unreachable nodes should be reported at least as warnings',
   'risky shapes such as very broad fan-out or excessive configured depth may be warnings in tolerant mode',
@@ -284,8 +282,8 @@ export const exampleIssues: SchemaValidationIssue[] = [
 | key-parser | schema-driven parsing of supported keyId grammar for current Yggdrasil examples | hardcoded path ordering or child rules inside parser code |
 | schema-definition | normalized schema map keyed by label with child and value constraints plus schema config for depth and identifier validation | ad hoc grammar branches spread across parser implementation |
 | schema-validation | cycle checks broken child reference checks unreachable-node checks and risky-shape warnings | trusting unvalidated schema input in security-sensitive paths |
-| schema-safety | allow DAG-style schema reuse but reject loops and incompatible terminal-child declarations | treating every graph shape as equally safe |
-| derived-fields | anchor path scope hierarchy and terminal kind derived from labels and schema position | application-specific meaning inferred from key kinds |
+| schema-safety | allow DAG-style schema reuse but reject loops and incompatible leaf-child declarations | treating every graph shape as equally safe |
+| derived-fields | anchor path scope kind-path and terminal kind derived from labels and schema position | application-specific meaning inferred from key kinds |
 | navigation-helpers | parent anchor-root and ancestor helpers over one key string or ParsedKey | resource loading or tree persistence |
 | relationship-helpers | descendant checks and descendant filtering on strings or ParsedKey values | access policy evaluation |
 | validation | stable parse failures for malformed key strings including depth and identifier min max and character policy failures | UI form frameworks or remote validation protocols |
@@ -329,7 +327,7 @@ Current supported key parsing rules.
 | all other values are opaque identifiers | underscore means intrinsic and tilde means contextual self reference | reserved-values |
 | semantic interpretation comes from labels and position instead of a duplicated segment kind field | each label:value pair is one atomic segment | segment-model |
 | path ordering and child rules are declarative rather than hardcoded | the parser must validate by traversing a schema from an allowed root label through child labels until the first configured anchor label is reached and then through descendant child labels | schema-driven-validation |
-| this keeps grammar logic in data instead of parser branches | each schema node defines allowed value types child labels and whether the node is terminal | schema-node-rules |
+| this keeps grammar logic in data instead of parser branches | each schema node defines allowed value types and child labels with empty childLabels meaning a terminal leaf | schema-node-rules |
 | cycles must still be rejected during schema validation | the schema may be a DAG because different parents may reference the same child label | schema-graph-shape |
 | no separate repeatability flag is required | a label is repeatable only when it appears in its own childLabels set | repetition-rules |
 | this validates scope under the same graph model as the anchored path | rootLabels define which labels may start a validated key before any anchor is reached | root-labels |
@@ -337,7 +335,7 @@ Current supported key parsing rules.
 | this applies only to id values and not to labels or reserved values underscore or tilde | identifier values must satisfy schema-level minimum length maximum length and identifier alphabet policy | id-constraints |
 | this avoids regex-based policy evaluation and supports common forms such as lowercase hexadecimal UUID values | identifier character validation should use direct code-unit checks against the configured idAlphabet preset and explicit extra characters | id-char-checks |
 | labels are schema tokens and should use a tighter parser-defined rule than the configurable identifier alphabet | schema labels are validated independently from id values | label-validation |
-| no hardcoded terminal label checks are required in parser code | terminal nodes are determined by schema and must declare an empty childLabels array and reject children | terminal-segments |
+| no hardcoded terminal label checks are required in parser code | nodes with empty childLabels arrays are terminal and must reject children | terminal-segments |
 | the serializer does not need shape-specific exceptions | canonical serialization always emits explicit label:value pairs | canonicalization |
 
 ### 02 Acceptance Examples
@@ -441,7 +439,6 @@ export type KeySchemaNode = {
   label: string;
   valueTypes: SchemaValueType[];
   childLabels: string[];
-  terminal?: boolean;
 };
 
 export type KeySchema = {
@@ -484,7 +481,7 @@ export interface ParsedKeyNavigator {
 }
 
 export type DerivedKind = {
-  hierarchy: string[];
+  anchorPath: string[];
 };
 
 export type ParseFailure = {
@@ -504,7 +501,7 @@ export type ParseFailure = {
 | ancestor_keys | ordered canonical keys from closest validated ancestor back to the anchor root | derived by repeated parent traversal without producing scope-only non-key strings |
 | kind_path | label-only view of scope anchor and path | derived by reading each segment label in order after schema validation |
 | terminal_kind | the last effective kind for the key | derived from the label of the final validated path segment or from the anchor label when no path exists |
-| derived_kind_hierarchy | anchor plus path labels | derived from labels segment position and schema-validated path structure |
+| derived_kind_anchor_path | anchor plus path labels | derived from the anchor label followed by descendant path labels after schema validation |
 
 #### ParsedKey Examples
 
@@ -585,7 +582,7 @@ API-shape examples for the Dart package.
 #### Parser API Example Shapes
 
 ```ts
-import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SchemaValidationOptions, SchemaValidationResult, SplitKey, SplitKeyBatch, ValidationMode } from './common';
+import type { DescendantQuery, DerivedKind, KeySchema, ParsedKey, ParsedKeyNavigator, SchemaValidationOptions, SchemaValidationResult, SplitKey, SplitKeyBatch } from './common';
 
 export type ParseResult =
   | { ok: true; value: ParsedKey }
@@ -597,7 +594,6 @@ export interface BeamingYggdrasilKeyParser {
   parse(keyId: string): ParseResult;
   mustParse(keyId: string): ParsedKey;
   isValid(keyId: string): boolean;
-  validationMode?: ValidationMode;
   splitKey(keyId: string): SplitKey;
   splitKeys(keyIds: string[]): SplitKeyBatch;
   combineKey(labels: string[], values: string[]): string;
@@ -631,10 +627,10 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - labels should be validated separately from id values because labels are schema tokens, not user-configured opaque identifiers
 // - lowercase hexadecimal with dash should be a first-class implementation path because it matches common UUID-style identifiers
 // - split/combine helpers should expose labels and values as parallel arrays of equal size for single keys and batches
-// - batch validation should default to stop-first, with collect-invalids reserved for debugging workflows
 // - schema validation should detect cycles broken child references unreachable nodes and risky shapes before key parsing begins
 // - shared descendants are allowed so nodesByLabel may describe a DAG, but cycles must always be rejected
 // - schema validation options should tune warning thresholds without weakening structural error checks
+// - deriveKind should expose anchorPath as the anchor label followed by descendant path labels and should not duplicate scope labels already present in kindPath
 // - duplicate anchor labels or duplicate child labels should be rejected before any schema traversal begins
 // - isAnchorKey should mean the validated key ends at the anchor segment with path.length === 0
 // - parent and ancestor helpers should operate only on validated ancestor keys and should return null instead of scope-only non-key prefixes when the input is already at anchor depth
@@ -766,7 +762,7 @@ Implementation guidance for corrupted keys and untrusted schema inputs.
 | bounded-iteration | prefer iterative loops with explicit segment counters over open-ended recursion on key input | bounded traversal prevents stack growth and non-terminating behavior on corrupted inputs |
 | schema-before-keys | validate schema integrity before accepting it for key parsing or traversal | broken schema graphs can otherwise create incorrect results or infinite traversal risks |
 | cycle-defense | reject schema cycles and keep traversal helpers working only on validated acyclic schema state | ancestor and descendant logic must never depend on graph shapes that can loop forever |
-| terminal-defense | reject terminal nodes that still declare children and fail closed on impossible parent child transitions | inconsistent schema edges should not be silently tolerated |
+| terminal-defense | treat nodes with empty childLabels as terminal leaves and fail closed on impossible parent child transitions | inconsistent schema edges should not be silently tolerated |
 | fail-closed | when a key fails validation return failure and do not try to salvage derived fields or canonical strings | fail-closed behavior avoids corrupted results that look valid enough to reuse |
 | canonical-output | only serialize from validated parsed data and always emit canonical label:value pairs | this prevents ambiguous or attacker-shaped strings from being reintroduced downstream |
 | identifier-policy | apply idAlphabet only to id values and validate labels with a separate stricter rule | mixing label validation with identifier validation can accidentally broaden accepted schema tokens |

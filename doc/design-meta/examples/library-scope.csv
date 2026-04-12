@@ -2,8 +2,8 @@ area,in_scope,out_of_scope
 key-parser,schema-driven parsing of supported keyId grammar for current Yggdrasil examples,hardcoded path ordering or child rules inside parser code
 schema-definition,normalized schema map keyed by label with child and value constraints plus schema config for depth and identifier validation,ad hoc grammar branches spread across parser implementation
 schema-validation,cycle checks broken child reference checks unreachable-node checks and risky-shape warnings,trusting unvalidated schema input in security-sensitive paths
-schema-safety,allow DAG-style schema reuse but reject loops and incompatible terminal-child declarations,treating every graph shape as equally safe
-derived-fields,anchor path scope hierarchy and terminal kind derived from labels and schema position,application-specific meaning inferred from key kinds
+schema-safety,allow DAG-style schema reuse but reject loops and incompatible leaf-child declarations,treating every graph shape as equally safe
+derived-fields,anchor path scope kind-path and terminal kind derived from labels and schema position,application-specific meaning inferred from key kinds
 navigation-helpers,parent anchor-root and ancestor helpers over one key string or ParsedKey,resource loading or tree persistence
 relationship-helpers,descendant checks and descendant filtering on strings or ParsedKey values,access policy evaluation
 validation,stable parse failures for malformed key strings including depth and identifier min max and character policy failures,UI form frameworks or remote validation protocols

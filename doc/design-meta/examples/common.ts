@@ -53,7 +53,6 @@ export type KeySchemaNode = {
   label: string;
   valueTypes: SchemaValueType[];
   childLabels: string[];
-  terminal?: boolean;
 };
 
 export type KeySchema = {
@@ -96,7 +95,7 @@ export interface ParsedKeyNavigator {
 }
 
 export type DerivedKind = {
-  hierarchy: string[];
+  anchorPath: string[];
 };
 
 export type ParseFailure = {
