@@ -1,11 +1,20 @@
 export type SchemaValueType = 'id' | '_' | '~';
 
+export type IdAlphabet =
+  | 'lower-alpha'
+  | 'alpha'
+  | 'digit'
+  | 'lower-alnum'
+  | 'alnum'
+  | 'lower-hex'
+  | 'upper-hex'
+  | 'hex';
+
 export type KeySchemaConfig = {
   maxDepth: number;
   minIdChars: number;
   maxIdChars: number;
-  allowAsciiLetters: boolean;
-  allowDigits: boolean;
+  idAlphabet: IdAlphabet;
   extraIdChars: string[];
 };
 
@@ -27,9 +36,8 @@ export const exampleSchema: KeySchema = {
     maxDepth: 8,
     minIdChars: 1,
     maxIdChars: 64,
-    allowAsciiLetters: true,
-    allowDigits: true,
-    extraIdChars: ['.', '_', '-'],
+    idAlphabet: 'lower-hex',
+    extraIdChars: ['-'],
   },
   anchorLabels: ['dashboard', 'profile'],
   nodesByLabel: {

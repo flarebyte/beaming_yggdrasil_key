@@ -8,7 +8,8 @@ schema-node-rules,each schema node defines allowed value types child labels and 
 schema-graph-shape,the schema may be a DAG because different parents may reference the same child label,cycles must still be rejected during schema validation
 repetition-rules,a label is repeatable only when it appears in its own childLabels set,no separate repeatability flag is required
 depth-limits,maximum depth is defined in schema config in segment units,the parser counts label:value pairs rather than raw colon-delimited tokens
-id-constraints,identifier values must satisfy schema-level minimum length maximum length and allowed character policy,this applies only to id values and not to reserved values underscore or tilde
-id-char-checks,identifier character validation should use direct code-unit checks against configured ASCII categories and explicit extra characters,this avoids regex-based policy evaluation
+id-constraints,identifier values must satisfy schema-level minimum length maximum length and identifier alphabet policy,this applies only to id values and not to labels or reserved values underscore or tilde
+id-char-checks,identifier character validation should use direct code-unit checks against the configured idAlphabet preset and explicit extra characters,this avoids regex-based policy evaluation and supports common forms such as lowercase hexadecimal UUID values
+label-validation,schema labels are validated independently from id values,labels are schema tokens and should use a tighter parser-defined rule than the configurable identifier alphabet
 terminal-segments,terminal nodes are determined by schema and must reject children,no hardcoded terminal label checks are required in parser code
 canonicalization,canonical serialization always emits explicit label:value pairs,the serializer does not need shape-specific exceptions

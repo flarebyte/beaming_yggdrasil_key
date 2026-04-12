@@ -115,12 +115,21 @@ Main capability areas and preferred API direction.
 ```ts
 export type SchemaValueType = 'id' | '_' | '~';
 
+export type IdAlphabet =
+  | 'lower-alpha'
+  | 'alpha'
+  | 'digit'
+  | 'lower-alnum'
+  | 'alnum'
+  | 'lower-hex'
+  | 'upper-hex'
+  | 'hex';
+
 export type KeySchemaConfig = {
   maxDepth: number;
   minIdChars: number;
   maxIdChars: number;
-  allowAsciiLetters: boolean;
-  allowDigits: boolean;
+  idAlphabet: IdAlphabet;
   extraIdChars: string[];
 };
 
@@ -142,9 +151,8 @@ export const exampleSchema: KeySchema = {
     maxDepth: 8,
     minIdChars: 1,
     maxIdChars: 64,
-    allowAsciiLetters: true,
-    allowDigits: true,
-    extraIdChars: ['.', '_', '-'],
+    idAlphabet: 'lower-hex',
+    extraIdChars: ['-'],
   },
   anchorLabels: ['dashboard', 'profile'],
   nodesByLabel: {
@@ -311,8 +319,9 @@ Current supported key parsing rules.
 | cycles must still be rejected during schema validation | the schema may be a DAG because different parents may reference the same child label | schema-graph-shape |
 | no separate repeatability flag is required | a label is repeatable only when it appears in its own childLabels set | repetition-rules |
 | the parser counts label:value pairs rather than raw colon-delimited tokens | maximum depth is defined in schema config in segment units | depth-limits |
-| this applies only to id values and not to reserved values underscore or tilde | identifier values must satisfy schema-level minimum length maximum length and allowed character policy | id-constraints |
-| this avoids regex-based policy evaluation | identifier character validation should use direct code-unit checks against configured ASCII categories and explicit extra characters | id-char-checks |
+| this applies only to id values and not to labels or reserved values underscore or tilde | identifier values must satisfy schema-level minimum length maximum length and identifier alphabet policy | id-constraints |
+| this avoids regex-based policy evaluation and supports common forms such as lowercase hexadecimal UUID values | identifier character validation should use direct code-unit checks against the configured idAlphabet preset and explicit extra characters | id-char-checks |
+| labels are schema tokens and should use a tighter parser-defined rule than the configurable identifier alphabet | schema labels are validated independently from id values | label-validation |
 | no hardcoded terminal label checks are required in parser code | terminal nodes are determined by schema and must reject children | terminal-segments |
 | the serializer does not need shape-specific exceptions | canonical serialization always emits explicit label:value pairs | canonicalization |
 
@@ -395,12 +404,21 @@ export type DescendantQuery = {
 
 export type SchemaValueType = 'id' | '_' | '~';
 
+export type IdAlphabet =
+  | 'lower-alpha'
+  | 'alpha'
+  | 'digit'
+  | 'lower-alnum'
+  | 'alnum'
+  | 'lower-hex'
+  | 'upper-hex'
+  | 'hex';
+
 export type KeySchemaConfig = {
   maxDepth: number;
   minIdChars: number;
   maxIdChars: number;
-  allowAsciiLetters: boolean;
-  allowDigits: boolean;
+  idAlphabet: IdAlphabet;
   extraIdChars: string[];
 };
 

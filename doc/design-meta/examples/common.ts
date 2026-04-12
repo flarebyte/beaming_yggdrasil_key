@@ -31,12 +31,21 @@ export type DescendantQuery = {
 
 export type SchemaValueType = 'id' | '_' | '~';
 
+export type IdAlphabet =
+  | 'lower-alpha'
+  | 'alpha'
+  | 'digit'
+  | 'lower-alnum'
+  | 'alnum'
+  | 'lower-hex'
+  | 'upper-hex'
+  | 'hex';
+
 export type KeySchemaConfig = {
   maxDepth: number;
   minIdChars: number;
   maxIdChars: number;
-  allowAsciiLetters: boolean;
-  allowDigits: boolean;
+  idAlphabet: IdAlphabet;
   extraIdChars: string[];
 };
 
