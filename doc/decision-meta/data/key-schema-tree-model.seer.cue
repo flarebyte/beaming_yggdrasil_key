@@ -14,12 +14,29 @@ config: {
 			"Normalized map shape: anchorLabels plus nodesByLabel keyed by label, with childLabels on each node.",
 		]
 	}
-	reports: [{
-		name:      "decision-csv"
-		title:     "Key Schema Tree Model Decision CSV"
-		format:    "csv"
-		arguments: ["columns=scenario,alternative,score,rank", "header=true"]
-	}]
+	reports: [
+		{
+			name:     "decision-markdown"
+			title:    "Key Schema Tree Model Decision"
+			format:   "markdown"
+			filepath: "../../decision/data/key-schema-tree-model.md"
+			arguments: [
+				"detail=standard",
+				"include-context=true",
+				"include-weights=true",
+				"include-alternative-descriptions=true",
+				"include-evaluation-notes=true",
+				"include-tradeoffs=true",
+			]
+		},
+		{
+			name:     "decision-csv"
+			title:    "Key Schema Tree Model Decision CSV"
+			format:   "csv"
+			filepath: "../../decision/data/key-schema-tree-model.csv"
+			arguments: ["columns=scenario,alternative,score,rank", "header=true"]
+		},
+	]
 	criteriaCatalog: [
 		{
 			name:          "json_simplicity"
