@@ -19,7 +19,8 @@ export interface BeamingYggdrasilKeyParser {
   parentOf(keyId: string): string | null;
   // Ordered from the closest validated ancestor back to the anchor root.
   ancestorsOf(keyId: string): string[];
-  isAnchor(keyId: string): boolean;
+  // Returns true when the validated key is itself the anchor-root key with no descendant path.
+  isAnchorKey(keyId: string): boolean;
   isDescendantOf(anchorKeyId: string, candidateKeyId: string): boolean;
   descendantsOf(anchorKeyId: string, candidateKeyIds: string[], query?: DescendantQuery): string[];
   deriveKind(parsed: ParsedKey): DerivedKind;
@@ -35,8 +36,8 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - parsed-key helpers should work directly on ParsedKey values without forcing a string round trip
 // - canonical string form should always use explicit label:value pairs
 // - semantic helpers such as terminalKind and kindPath should be derived from labels and position, not stored redundantly on each segment
-// - ParsedKey should distinguish scope from anchor from path: scope is before the first schema anchor label, anchor is that first anchor-labeled segment, and path is everything after it
-// - structure validation should traverse the schema instead of hardcoding allowed label order in parser code
+// - ParsedKey should distinguish scope from anchor from path: scope is before the first schema anchor label reached from a validated root path, anchor is that first anchor-labeled segment, and path is everything after it
+// - structure validation should traverse the schema from rootLabels instead of hardcoding allowed label order in parser code
 // - schema config should define max depth in segment units plus id minimum length maximum length and an idAlphabet preset
 // - repeatability should be derived from schema childLabels rather than a separate node flag
 // - identifier checks should map idAlphabet to direct code-unit predicates plus a small extra-character whitelist instead of regex
@@ -48,6 +49,7 @@ export interface BeamingYggdrasilParsedKeyOps extends ParsedKeyNavigator {}
 // - shared descendants are allowed so nodesByLabel may describe a DAG, but cycles must always be rejected
 // - schema validation options should tune warning thresholds without weakening structural error checks
 // - duplicate anchor labels or duplicate child labels should be rejected before any schema traversal begins
+// - isAnchorKey should mean the validated key ends at the anchor segment with path.length === 0
 // - parent and ancestor helpers should operate only on validated ancestor keys and should return null instead of scope-only non-key prefixes when the input is already at anchor depth
 // - treat raw keys as untrusted input until full validation succeeds and never expose derived navigation from partial parses
 // - prefer bounded iterative traversal over recursive parsing or recursive relationship walks on attacker-controlled input

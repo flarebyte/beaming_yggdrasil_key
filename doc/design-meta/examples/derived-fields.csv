@@ -1,6 +1,6 @@
 derived_field,meaning,source
 canonical,the canonical keyId string representation using explicit label:value pairs,original validated token sequence after deterministic serialization
-scope,structured scope segments,"leading id segments before the anchor, all validated segments before the first schema anchor label"
+scope,structured scope segments,"leading id segments before the anchor, all validated segments before the first schema anchor label reached from a validated root path"
 anchor,required structured anchor segment,first supported anchor label and id that anchors navigation within the key
 path,structured descendant segments after the anchor,remaining validated labels and ids after the anchored segment
 parent_key,canonical key of the immediate validated ancestor when one exists,derived by removing the final descendant segment and returning null when the key is already at anchor depth

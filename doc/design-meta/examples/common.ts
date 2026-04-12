@@ -58,6 +58,7 @@ export type KeySchemaNode = {
 
 export type KeySchema = {
   config: KeySchemaConfig;
+  rootLabels: string[];
   anchorLabels: string[];
   nodesByLabel: Record<string, KeySchemaNode>;
 };
@@ -87,7 +88,7 @@ export interface SchemaValidationResult {
 }
 
 export interface ParsedKeyNavigator {
-  isAnchor(parsed: ParsedKey): boolean;
+  isAnchorKey(parsed: ParsedKey): boolean;
   parentOf(parsed: ParsedKey): ParsedKey | null;
   ancestorsOf(parsed: ParsedKey): ParsedKey[];
   isDescendantOf(anchor: ParsedKey, candidate: ParsedKey): boolean;

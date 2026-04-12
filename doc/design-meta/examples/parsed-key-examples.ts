@@ -62,6 +62,6 @@ export const profileRootParsed: ParsedKey = {
 };
 
 // ParsedKey shape guidance:
-// - scope contains validated segments before the first schema anchor label
+// - scope contains validated segments before the first schema anchor label reached from a validated root label
 // - anchor is that first schema anchor-labeled segment and acts as the navigation anchor
 // - path contains validated descendant segments after the anchor

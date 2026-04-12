@@ -6,7 +6,8 @@ value,the value-side content of a segment which is either an opaque id or a rese
 reserved value,a special non-id segment value such as underscore for intrinsic or tilde for contextual self
 schema,the declarative grammar definition used by the parser instead of hardcoded path rules
 nodesByLabel,the normalized schema map keyed by label that stores node definitions
-anchor label,a label listed in schema anchorLabels that may act as the parsed anchor of a key
+root label,a label listed in schema rootLabels that may start a validated key before any anchor is reached
+anchor label,a label listed in schema anchorLabels that may act as the parsed anchor once reached from a validated root path
 anchor,the first segment in a validated key whose label is in schema anchorLabels and which anchors navigation
 scope,validated segments before the anchor
 path,validated segments after the anchor

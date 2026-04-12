@@ -5,6 +5,9 @@ export interface BeamingYggdrasilSchemaValidator {
 }
 
 export const schemaValidationChecks = [
+  'rootLabels should not be empty',
+  'rootLabels must exist in nodesByLabel',
+  'rootLabels should not contain duplicates',
   'anchorLabels should not be empty',
   'anchorLabels must exist in nodesByLabel',
   'anchorLabels should not contain duplicates',
@@ -13,16 +16,18 @@ export const schemaValidationChecks = [
   'childLabels should not contain duplicates within the same node',
   'shared descendants are allowed, so the schema may be a DAG',
   'cycles must be reported as errors, including self-loops and longer loops',
-  'terminal nodes should not declare childLabels',
+  'terminal nodes must declare an empty childLabels array',
+  'every anchor label should be reachable from at least one configured root label',
   'unreachable nodes should be reported at least as warnings',
   'risky shapes such as very broad fan-out or excessive configured depth may be warnings in tolerant mode',
 ];
 
 export const schemaValidationAlgorithms = [
-  'referential-integrity pass: verify every anchorLabels entry and every childLabels entry points to a defined node',
+  'referential-integrity pass: verify every rootLabels entry every anchorLabels entry and every childLabels entry points to a defined node',
   'node-identity pass: verify each nodesByLabel map key matches the embedded node label',
-  'duplicate-entry pass: detect repeated anchorLabels and repeated childLabels within a node before traversal begins',
-  'reachability pass: traverse from anchorLabels and warn for any node never reached',
+  'duplicate-entry pass: detect repeated rootLabels repeated anchorLabels and repeated childLabels within a node before traversal begins',
+  'reachability pass: traverse from rootLabels and warn for any node never reached',
+  'anchor-reachability pass: verify every configured anchor label can be reached from at least one configured root label',
   'cycle-detection pass: run DFS with visiting and visited states so DAG reuse is accepted but loops are rejected',
   'shape-risk pass: emit warnings for unusual fan-out anchor count or reachable-node volume based on configured thresholds',
 ];
@@ -43,8 +48,14 @@ export const exampleIssues: SchemaValidationIssue[] = [
   {
     severity: 'warning',
     code: 'schema.unreachable',
-    message: 'Node audit is not reachable from any configured anchor label',
+    message: 'Node audit is not reachable from any configured root label',
     label: 'audit',
+  },
+  {
+    severity: 'error',
+    code: 'schema.unreachable_anchor',
+    message: 'Configured anchor label profile is not reachable from any configured root label',
+    label: 'profile',
   },
   {
     severity: 'warning',

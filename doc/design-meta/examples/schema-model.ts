@@ -27,6 +27,7 @@ export type KeySchemaNode = {
 
 export type KeySchema = {
   config: KeySchemaConfig;
+  rootLabels: string[];
   anchorLabels: string[];
   nodesByLabel: Record<string, KeySchemaNode>;
 };
@@ -39,6 +40,7 @@ export const exampleSchema: KeySchema = {
     idAlphabet: 'lower-hex',
     extraIdChars: ['-'],
   },
+  rootLabels: ['tenant', 'department', 'region'],
   anchorLabels: ['dashboard', 'profile'],
   nodesByLabel: {
     tenant: { label: 'tenant', valueTypes: ['id'], childLabels: ['group', 'department', 'region', 'dashboard', 'profile'] },

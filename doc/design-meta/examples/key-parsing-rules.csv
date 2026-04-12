@@ -3,13 +3,14 @@ tokenization,split keyId by colon into label value pairs,empty keyId is invalid 
 uniform-segments,every segment must use the form label:value,this removes ambiguity from bare labels
 reserved-values,underscore means intrinsic and tilde means contextual self reference,all other values are opaque identifiers
 segment-model,each label:value pair is one atomic segment,semantic interpretation comes from labels and position instead of a duplicated segment kind field
-schema-driven-validation,the parser must validate by traversing a schema from parent label to allowed child labels,path ordering and child rules are declarative rather than hardcoded
+schema-driven-validation,the parser must validate by traversing a schema from an allowed root label through child labels until the first configured anchor label is reached and then through descendant child labels,path ordering and child rules are declarative rather than hardcoded
 schema-node-rules,each schema node defines allowed value types child labels and whether the node is terminal,this keeps grammar logic in data instead of parser branches
 schema-graph-shape,the schema may be a DAG because different parents may reference the same child label,cycles must still be rejected during schema validation
 repetition-rules,a label is repeatable only when it appears in its own childLabels set,no separate repeatability flag is required
+root-labels,rootLabels define which labels may start a validated key before any anchor is reached,this validates scope under the same graph model as the anchored path
 depth-limits,maximum depth is defined in schema config in segment units,the parser counts label:value pairs rather than raw colon-delimited tokens
 id-constraints,identifier values must satisfy schema-level minimum length maximum length and identifier alphabet policy,this applies only to id values and not to labels or reserved values underscore or tilde
 id-char-checks,identifier character validation should use direct code-unit checks against the configured idAlphabet preset and explicit extra characters,this avoids regex-based policy evaluation and supports common forms such as lowercase hexadecimal UUID values
 label-validation,schema labels are validated independently from id values,labels are schema tokens and should use a tighter parser-defined rule than the configurable identifier alphabet
-terminal-segments,terminal nodes are determined by schema and must reject children,no hardcoded terminal label checks are required in parser code
+terminal-segments,terminal nodes are determined by schema and must declare an empty childLabels array and reject children,no hardcoded terminal label checks are required in parser code
 canonicalization,canonical serialization always emits explicit label:value pairs,the serializer does not need shape-specific exceptions
