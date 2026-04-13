@@ -1,0 +1,5 @@
+scenario,alternative,score,rank
+baseline,normalized_map,0.907606,1
+baseline,adjacency_list,0.092394,2
+overall,normalized_map,0.907606,1
+overall,adjacency_list,0.092394,2

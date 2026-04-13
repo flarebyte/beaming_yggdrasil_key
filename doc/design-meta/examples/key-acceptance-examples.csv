@@ -1,0 +1,8 @@
+key_id,expected_anchor,expected_terminal_kind,notes
+tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07,dashboard,dashboard,anchor key
+tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:note:c7c401c2:text:_,dashboard,text,note text leaf with explicit intrinsic value
+tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:note:c7c401c2:like:_:count:_,dashboard,count,derived count leaf with explicit intrinsic segments
+tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:note:c7c401c2:thumbnail:_,dashboard,thumbnail,thumbnail intrinsic leaf
+tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:note:c7c401c2:language:_,dashboard,language,language intrinsic leaf
+tenant:a8f3a1c2:group:b4b7d9e1:dashboard:d1e52f07:user:~,dashboard,user,contextual self segment using reserved tilde
+department:d1:team:a1:profile:b1,profile,profile,alternate supported scope and anchor labels

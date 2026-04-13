@@ -1,0 +1,5 @@
+goal,why_it_matters
+model Yggdrasil logical keys in Dart,gives applications a structured alternative to ad hoc string handling
+parse and validate supported keyId shapes,lets client code reject malformed keys deterministically
+behave like an advanced path utility for keys,makes parent ancestor and descendant operations available from one focused package
+stay lightweight to import and understand,keeps the package easy to adopt without bringing in unrelated concerns

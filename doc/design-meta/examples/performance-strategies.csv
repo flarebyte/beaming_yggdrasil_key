@@ -1,0 +1,13 @@
+strategy,when_to_use,core_idea,tradeoff
+streaming-validator,default single-key validation,scan code units once and validate alternating label:value pairs while traversing schema,lowest abstraction and less reusable intermediate state
+token-array-validator,reference implementation and moderate workloads,split once and walk tokens two at a time for simple readable validation,more allocations than a streaming path
+split-array-schema-walk,default validation once a key is already split,walk parallel labels and values arrays while checking schema child rules and value constraints,still pays repeated string lookups unless schema is compiled
+deduplicated-split-validator,large batches containing many identical keys,use a set or hash map over split-key representations so each unique split key is schema-validated only once,needs projection from unique results back to original batch positions
+compiled-split-validator,large batches of pre-split keys,convert labels to compact ids and validate with precomputed child and value tables,adds compilation and translation cost
+prefix-state-split-validator,many split keys sharing long prefixes,reuse cached schema traversal state for validated label prefixes,cache invalidation and memory use add complexity
+two-phase-split-validator,large noisy batches of split keys,run cheap length and character checks before full schema traversal,duplicates part of the validation pipeline
+compiled-schema-validator,large batches of keys,precompute label ids child lookups and value rules to reduce repeated map and string work,adds setup cost and more internal machinery
+prefix-cached-validator,many keys sharing common prefixes,reuse validated prefix states so related keys do not restart schema traversal from the anchor,cache management adds memory overhead
+two-phase-batch-validator,large noisy input sets,run cheap structural checks before full schema traversal to reject bad keys early,duplicates part of validation logic across phases
+prefix-scan-descendants,find descendants by scanning many keys,compare validated segment prefixes instead of reparsing full candidates every time,may still be linear without a dedicated index
+indexed-descendants-lookup,repeated descendant retrieval over large stable sets,build an index keyed by canonical parent or validated prefix for faster repeated queries,index build and update cost may not pay off for small sets

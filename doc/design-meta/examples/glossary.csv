@@ -1,0 +1,18 @@
+term,meaning
+keyId,canonical string representation of a key using explicit label:value pairs
+segment,one atomic label:value pair inside a key
+label,the schema-side name of a segment such as tenant dashboard note or user
+value,the value-side content of a segment which is either an opaque id or a reserved sentinel
+reserved value,a special non-id segment value such as underscore for intrinsic or tilde for contextual self
+schema,the declarative grammar definition used by the parser instead of hardcoded path rules
+nodesByLabel,the normalized schema map keyed by label that stores node definitions
+root label,a label listed in schema rootLabels that may start a validated key before any anchor is reached
+anchor label,a label listed in schema anchorLabels that may act as the parsed anchor once reached from a validated root path
+anchor,the first segment in a validated key whose label is in schema anchorLabels and which anchors navigation
+scope,validated segments before the anchor
+path,validated segments after the anchor
+canonicalization,serialization of a validated key back into its stable explicit label:value form
+parsed key,the structured representation of a validated key with canonical kindPath scope anchor path and terminalKind
+split key,a representation of a key as parallel labels and values arrays of equal length
+validation mode,batch validation behavior such as stop-first or collect-invalids
+schema validation,validation of the schema itself for referential integrity duplicates reachability cycles and risky shapes

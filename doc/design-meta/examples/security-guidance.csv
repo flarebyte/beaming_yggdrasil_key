@@ -1,0 +1,15 @@
+concern,recommendation,why_it_matters
+untrusted-key-input,treat every incoming key string as untrusted until it passes full validation,corrupted keys should not be allowed to influence navigation or derived results
+partial-parse-use,do not expose parent ancestor descendant or kind helpers on partially validated data,partial success can leak inconsistent state into higher-level logic
+structural-bounds,reject odd token counts empty segments and depth overflows before any deeper traversal,cheap structural guards prevent malformed inputs from triggering unnecessary work
+bounded-iteration,prefer iterative loops with explicit segment counters over open-ended recursion on key input,bounded traversal prevents stack growth and non-terminating behavior on corrupted inputs
+schema-before-keys,validate schema integrity before accepting it for key parsing or traversal,broken schema graphs can otherwise create incorrect results or infinite traversal risks
+cycle-defense,reject schema cycles and keep traversal helpers working only on validated acyclic schema state,ancestor and descendant logic must never depend on graph shapes that can loop forever
+terminal-defense,treat nodes with empty childLabels as terminal leaves and fail closed on impossible parent child transitions,inconsistent schema edges should not be silently tolerated
+fail-closed,when a key fails validation return failure and do not try to salvage derived fields or canonical strings,fail-closed behavior avoids corrupted results that look valid enough to reuse
+canonical-output,only serialize from validated parsed data and always emit canonical label:value pairs,this prevents ambiguous or attacker-shaped strings from being reintroduced downstream
+identifier-policy,apply idAlphabet only to id values and validate labels with a separate stricter rule,mixing label validation with identifier validation can accidentally broaden accepted schema tokens
+alphabet-implementation,use direct code-unit predicates for each idAlphabet preset and explicit extraIdChars membership checks,preset-based checks are easier to audit than ad hoc regex and make hex oriented policies unambiguous
+cache-safety,do not cache unvalidated parse results and keep validation or prefix caches scoped and bounded,untrusted inputs should not be able to grow caches without limit
+batch-safety,default batch validation to stop-first and only enable collect-invalids intentionally for debugging,large hostile batches should be cheap to reject
+descendant-scan-safety,when scanning candidate keys for descendants compare bounded validated segment arrays and enforce maxDepth filters,relationship queries should not depend on reparsing or unchecked prefix math

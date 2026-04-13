@@ -1,0 +1,16 @@
+priority,usecase,why_it_matters,minimum_library_support
+1,validate schemas before use,lets applications reject or warn on dangerous grammar definitions before parsing starts,report cycles broken child links unreachable labels and risky shapes with severity
+2,validate externally supplied schema with warnings,lets applications screen config supplied schemas before enabling them at runtime,allow warnings for risky but still parseable models while still rejecting structural errors
+3,parse supported keyIds with a schema,lets Dart code validate grammar without hardcoding path rules,parse into structured segments while traversing schema node definitions from configured root labels through the first anchor and then through descendants
+4,split a key into schema and value arrays,lets algorithms work on labels and values separately without reparsing,return equal-length labels and values arrays for one key
+5,split a list of keys into schema and value arrays,lets batch algorithms reuse tokenized structure across many keys,return parallel label and value arrays for each key in a batch
+6,rebuild keys from split parts,lets callers transform or compare separated parts and then recover canonical strings,combine equal-length label and value arrays back into canonical keys
+7,get the parent or anchor-root status of a key string,lets app code navigate raw keys like paths,provide parent and isAnchorKey helpers for string inputs after schema validation
+8,get parent or ancestors from a parsed key,lets app code avoid re-parsing when a ParsedKey is already available,provide ParsedKey-based parent and ancestor helpers
+9,check descendant relationships within a list of keys,lets app code find related keys without building custom traversal code,provide descendant filtering with include-self and max-depth options for strings and ParsedKey values
+10,configure grammar through schema data,lets the package adapt to allowed labels root positions child ordering value rules and validation limits without parser rewrites,accept a normalized schema map keyed by label with explicit root and anchor config
+11,enforce bounded depth and identifier constraints,lets applications reject pathological or malformed keys consistently,validate max depth in segment units plus id min length max length and explicit character policy from schema config
+12,stop batch validation on first failure by default,lets large validation runs abort quickly when the input set is already known to be bad,provide stop-first as the default validation mode
+13,collect all invalid keys when debugging,lets developers inspect the full set of failures when needed,provide an explicit collect-invalids mode without changing the fast default
+14,fail safely on corrupted keys,lets applications reject corrupted or attacker-shaped input without poisoning derived results,avoid partial parse helpers and use bounded validation and traversal
+15,keep canonical string form,lets app code compare and persist keys consistently,serialize parsed key back to canonical keyId
